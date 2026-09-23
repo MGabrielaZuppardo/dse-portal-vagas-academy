@@ -1,0 +1,466 @@
+# Taxonomia de skills técnicas.
+#
+# id:        identificador canônico (snake_case, estável: é o que vai para o banco)
+# nome:      forma de exibição, também enviada ao LLM como vocabulário sugerido
+# categoria: agrupamento para o dashboard
+# sinonimos: variações PT/EN que o LLM ou a vaga podem usar. A comparação ignora
+#            maiúsculas, acentos, espaços, hífens, pontos e sublinhados
+#            ("Power-BI" == "powerbi"), então não é preciso listar essas variações.
+# pai:       (opcional) skill mais ampla que também é contada. Ex.: AWS Glue -> AWS.
+#
+# Skills que o LLM extrair e não casarem com nada daqui vão para
+# `skills_nao_mapeadas`; revise periodicamente e promova as frequentes.
+
+versao: 1
+
+# Termos que continuam valendo para mapear a saída do LLM, mas NÃO são procurados
+# no texto livre da vaga (extração por palavra-chave), porque também são palavras
+# comuns em português/inglês ou nomes de empresas ("informática", "a ponta do
+# iceberg", "Shell"). A skill ainda é encontrada pelas formas longas
+# ("AWS Lambda", "Microsoft Fabric", "Informatica PowerCenter").
+# A linguagem R tem regra própria no código (letra maiúscula isolada).
+ignorar_na_busca_textual:
+  - R
+  - CI
+  - CD
+  - BQ
+  - Delta
+  - DLT
+  - Fabric
+  - Lambda
+  - Composer
+  - Vertex
+  - Elastic
+  - Torch
+  - Shell
+  - Macros
+  - REST
+  - DW
+  - PDI
+  - planilhas
+  - containers
+  - contêineres
+  - experimentação
+  - M language
+  - Linguagem M
+  - Informatica
+  - Iceberg
+  - Mongo
+
+skills:
+  # --- Linguagens -----------------------------------------------------------
+  - id: python
+    nome: Python
+    categoria: linguagem
+  - id: sql
+    nome: SQL
+    categoria: linguagem
+    sinonimos: [T-SQL, PL/SQL, ANSI SQL, linguagem SQL, consultas SQL, Spark SQL]
+  - id: r
+    nome: R
+    categoria: linguagem
+    sinonimos: [linguagem R, RStudio]
+  - id: scala
+    nome: Scala
+    categoria: linguagem
+  - id: java
+    nome: Java
+    categoria: linguagem
+  - id: shell
+    nome: Shell Script
+    categoria: linguagem
+    sinonimos: [Shell, Bash, Shell scripting, PowerShell]
+  - id: sas
+    nome: SAS
+    categoria: linguagem
+  - id: vba
+    nome: VBA
+    categoria: linguagem
+    sinonimos: [Macros, Excel VBA]
+
+  # --- Processamento --------------------------------------------------------
+  - id: spark
+    nome: Apache Spark
+    categoria: processamento
+    sinonimos: [Spark, PySpark, Spark Streaming, Structured Streaming]
+  - id: pandas
+    nome: pandas
+    categoria: processamento
+  - id: hadoop
+    nome: Hadoop
+    categoria: processamento
+    sinonimos: [HDFS, MapReduce, Apache Hadoop, Cloudera]
+  - id: hive
+    nome: Hive
+    categoria: processamento
+    sinonimos: [Apache Hive, HiveQL]
+  - id: kafka
+    nome: Kafka
+    categoria: streaming
+    sinonimos: [Apache Kafka, Confluent, Kafka Streams]
+  - id: flink
+    nome: Flink
+    categoria: streaming
+    sinonimos: [Apache Flink]
+
+  # --- Orquestração e integração --------------------------------------------
+  - id: airflow
+    nome: Airflow
+    categoria: orquestracao
+    sinonimos: [Apache Airflow, MWAA, Cloud Composer, Composer]
+  - id: dagster
+    nome: Dagster
+    categoria: orquestracao
+  - id: prefect
+    nome: Prefect
+    categoria: orquestracao
+  - id: dbt
+    nome: dbt
+    categoria: transformacao
+    sinonimos: [data build tool, dbt Core, dbt Cloud]
+  - id: airbyte
+    nome: Airbyte
+    categoria: integracao
+  - id: fivetran
+    nome: Fivetran
+    categoria: integracao
+  - id: ssis
+    nome: SSIS
+    categoria: integracao
+    sinonimos: [SQL Server Integration Services]
+  - id: informatica
+    nome: Informatica
+    categoria: integracao
+    sinonimos: [Informatica PowerCenter, PowerCenter, IICS]
+  - id: pentaho
+    nome: Pentaho
+    categoria: integracao
+    sinonimos: [Pentaho Data Integration, PDI, Kettle]
+  - id: talend
+    nome: Talend
+    categoria: integracao
+  - id: nifi
+    nome: NiFi
+    categoria: integracao
+    sinonimos: [Apache NiFi]
+
+  # --- Cloud ----------------------------------------------------------------
+  - id: aws
+    nome: AWS
+    categoria: cloud
+    sinonimos: [Amazon Web Services]
+  - id: aws_glue
+    nome: AWS Glue
+    categoria: cloud
+    pai: aws
+    sinonimos: [Glue]
+  - id: aws_s3
+    nome: Amazon S3
+    categoria: cloud
+    pai: aws
+    sinonimos: [S3, AWS S3]
+  - id: aws_redshift
+    nome: Redshift
+    categoria: data_warehouse
+    pai: aws
+    sinonimos: [Amazon Redshift, AWS Redshift]
+  - id: aws_athena
+    nome: Athena
+    categoria: cloud
+    pai: aws
+    sinonimos: [Amazon Athena, AWS Athena]
+  - id: aws_emr
+    nome: EMR
+    categoria: cloud
+    pai: aws
+    sinonimos: [Amazon EMR, AWS EMR]
+  - id: aws_lambda
+    nome: AWS Lambda
+    categoria: cloud
+    pai: aws
+    sinonimos: [Lambda]
+  - id: aws_kinesis
+    nome: Kinesis
+    categoria: streaming
+    pai: aws
+    sinonimos: [Amazon Kinesis, AWS Kinesis, Kinesis Firehose]
+  - id: sagemaker
+    nome: SageMaker
+    categoria: ml
+    pai: aws
+    sinonimos: [Amazon SageMaker, AWS SageMaker]
+  - id: azure
+    nome: Azure
+    categoria: cloud
+    sinonimos: [Microsoft Azure]
+  - id: azure_data_factory
+    nome: Azure Data Factory
+    categoria: integracao
+    pai: azure
+    sinonimos: [Data Factory, ADF]
+  - id: azure_synapse
+    nome: Azure Synapse
+    categoria: data_warehouse
+    pai: azure
+    sinonimos: [Synapse, Synapse Analytics]
+  - id: microsoft_fabric
+    nome: Microsoft Fabric
+    categoria: data_warehouse
+    pai: azure
+    sinonimos: [Fabric, MS Fabric]
+  - id: gcp
+    nome: GCP
+    categoria: cloud
+    sinonimos: [Google Cloud, Google Cloud Platform]
+  - id: bigquery
+    nome: BigQuery
+    categoria: data_warehouse
+    pai: gcp
+    sinonimos: [Google BigQuery, BQ]
+  - id: gcp_dataflow
+    nome: Dataflow
+    categoria: processamento
+    pai: gcp
+    sinonimos: [Google Dataflow, Cloud Dataflow, Apache Beam]
+  - id: gcp_dataproc
+    nome: Dataproc
+    categoria: processamento
+    pai: gcp
+    sinonimos: [Google Dataproc, Cloud Dataproc]
+  - id: gcp_pubsub
+    nome: Pub/Sub
+    categoria: streaming
+    pai: gcp
+    sinonimos: [Google Pub/Sub, Cloud Pub/Sub]
+  - id: vertex_ai
+    nome: Vertex AI
+    categoria: ml
+    pai: gcp
+    sinonimos: [Vertex]
+
+  # --- Plataformas de dados -------------------------------------------------
+  - id: databricks
+    nome: Databricks
+    categoria: data_warehouse
+    sinonimos: [Azure Databricks]
+  - id: snowflake
+    nome: Snowflake
+    categoria: data_warehouse
+  - id: delta_lake
+    nome: Delta Lake
+    categoria: formato_tabela
+    sinonimos: [Delta, Delta Tables, Delta Live Tables, DLT]
+  - id: iceberg
+    nome: Apache Iceberg
+    categoria: formato_tabela
+    sinonimos: [Iceberg]
+  - id: unity_catalog
+    nome: Unity Catalog
+    categoria: governanca
+    pai: databricks
+
+  # --- Bancos de dados ------------------------------------------------------
+  - id: sql_server
+    nome: SQL Server
+    categoria: banco_dados
+    sinonimos: [MS SQL Server, Microsoft SQL Server, MSSQL]
+  - id: oracle
+    nome: Oracle
+    categoria: banco_dados
+    sinonimos: [Oracle Database, Oracle DB]
+  - id: postgresql
+    nome: PostgreSQL
+    categoria: banco_dados
+    sinonimos: [Postgres]
+  - id: mysql
+    nome: MySQL
+    categoria: banco_dados
+    sinonimos: [MariaDB]
+  - id: mongodb
+    nome: MongoDB
+    categoria: banco_dados
+    sinonimos: [Mongo]
+  - id: redis
+    nome: Redis
+    categoria: banco_dados
+  - id: cassandra
+    nome: Cassandra
+    categoria: banco_dados
+    sinonimos: [Apache Cassandra]
+  - id: elasticsearch
+    nome: Elasticsearch
+    categoria: banco_dados
+    sinonimos: [Elastic, OpenSearch, ELK]
+  - id: nosql
+    nome: NoSQL
+    categoria: banco_dados
+    sinonimos: [bancos NoSQL, bancos não relacionais]
+
+  # --- BI e visualização ----------------------------------------------------
+  - id: power_bi
+    nome: Power BI
+    categoria: bi
+    sinonimos: [PBI, Power BI Desktop, Power BI Service]
+  - id: dax
+    nome: DAX
+    categoria: bi
+    pai: power_bi
+  - id: power_query
+    nome: Power Query
+    categoria: bi
+    sinonimos: [Linguagem M, M language]
+  - id: tableau
+    nome: Tableau
+    categoria: bi
+  - id: looker
+    nome: Looker
+    categoria: bi
+    sinonimos: [LookML]
+  - id: looker_studio
+    nome: Looker Studio
+    categoria: bi
+    sinonimos: [Data Studio, Google Data Studio]
+  - id: qlik
+    nome: Qlik
+    categoria: bi
+    sinonimos: [Qlik Sense, QlikView]
+  - id: metabase
+    nome: Metabase
+    categoria: bi
+  - id: excel
+    nome: Excel
+    categoria: bi
+    sinonimos: [Microsoft Excel, Excel avançado, planilhas]
+
+  # --- ML e IA ----------------------------------------------------------------
+  - id: machine_learning
+    nome: Machine Learning
+    categoria: ml
+    sinonimos: [ML, aprendizado de máquina, modelos preditivos, modelagem preditiva]
+  - id: deep_learning
+    nome: Deep Learning
+    categoria: ml
+    sinonimos: [redes neurais, aprendizado profundo]
+  - id: scikit_learn
+    nome: scikit-learn
+    categoria: ml
+    sinonimos: [sklearn]
+  - id: xgboost
+    nome: XGBoost
+    categoria: ml
+  - id: lightgbm
+    nome: LightGBM
+    categoria: ml
+  - id: tensorflow
+    nome: TensorFlow
+    categoria: ml
+    sinonimos: [Keras]
+  - id: pytorch
+    nome: PyTorch
+    categoria: ml
+    sinonimos: [Torch]
+  - id: mlflow
+    nome: MLflow
+    categoria: mlops
+  - id: mlops
+    nome: MLOps
+    categoria: mlops
+  - id: nlp
+    nome: NLP
+    categoria: ml
+    sinonimos: [processamento de linguagem natural, natural language processing, PLN]
+  - id: llm
+    nome: LLMs / IA Generativa
+    categoria: ia_generativa
+    sinonimos: [LLM, IA generativa, GenAI, Generative AI, large language models, OpenAI, prompt engineering]
+  - id: rag
+    nome: RAG
+    categoria: ia_generativa
+    pai: llm
+    sinonimos: [Retrieval-Augmented Generation]
+  - id: langchain
+    nome: LangChain
+    categoria: ia_generativa
+    pai: llm
+    sinonimos: [LangGraph]
+
+  # --- Métodos e conceitos técnicos -------------------------------------------
+  - id: estatistica
+    nome: Estatística
+    categoria: metodo
+    sinonimos: [statistics, estatística aplicada, inferência estatística, testes de hipótese]
+  - id: series_temporais
+    nome: Séries temporais
+    categoria: metodo
+    sinonimos: [time series, forecasting, previsão de demanda]
+  - id: testes_ab
+    nome: Testes A/B
+    categoria: metodo
+    sinonimos: [A/B testing, AB test, experimentação]
+  - id: etl
+    nome: ETL/ELT
+    categoria: conceito
+    sinonimos: [ETL, ELT, pipelines de dados, data pipelines, pipelines ETL]
+  - id: modelagem_dados
+    nome: Modelagem de dados
+    categoria: conceito
+    sinonimos: [modelagem dimensional, data modeling, star schema, Kimball, modelo dimensional, Data Vault]
+  - id: data_warehouse
+    nome: Data Warehouse
+    categoria: conceito
+    sinonimos: [DW, DWH, armazém de dados]
+  - id: data_lake
+    nome: Data Lake / Lakehouse
+    categoria: conceito
+    sinonimos: [Data Lake, Lakehouse, arquitetura medalhão, medallion architecture]
+  - id: data_quality
+    nome: Qualidade de dados
+    categoria: governanca
+    sinonimos: [data quality, Great Expectations, qualidade dos dados]
+  - id: governanca_dados
+    nome: Governança de dados
+    categoria: governanca
+    sinonimos: [data governance, catálogo de dados, data catalog, Purview, Collibra, DAMA, DMBOK]
+  - id: lgpd
+    nome: LGPD
+    categoria: governanca
+    sinonimos: [Lei Geral de Proteção de Dados, GDPR]
+
+  # --- Engenharia de software / DevOps ----------------------------------------
+  - id: git
+    nome: Git
+    categoria: devops
+    sinonimos: [GitHub, GitLab, Bitbucket, versionamento de código]
+  - id: ci_cd
+    nome: CI/CD
+    categoria: devops
+    sinonimos: [CI, CD, GitHub Actions, Jenkins, Azure DevOps, GitLab CI, integração contínua]
+  - id: docker
+    nome: Docker
+    categoria: devops
+    sinonimos: [containers, contêineres]
+  - id: kubernetes
+    nome: Kubernetes
+    categoria: devops
+    sinonimos: [K8s, EKS, AKS, GKE]
+  - id: terraform
+    nome: Terraform
+    categoria: devops
+    sinonimos: [IaC, infraestrutura como código]
+  - id: linux
+    nome: Linux
+    categoria: devops
+  - id: apis
+    nome: APIs REST
+    categoria: devops
+    sinonimos: [API, APIs, REST, RESTful, integração via API, FastAPI]
+
+  # --- Sistemas corporativos ---------------------------------------------------
+  - id: sap
+    nome: SAP
+    categoria: sistema_corporativo
+    sinonimos: [SAP ECC, SAP S/4HANA, S/4HANA, SAP BW, SAP HANA]
+  - id: salesforce
+    nome: Salesforce
+    categoria: sistema_corporativo
+    sinonimos: [SFDC, Salesforce CRM]
