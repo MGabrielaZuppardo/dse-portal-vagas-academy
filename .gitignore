@@ -1,0 +1,8 @@
+.venv/
+.idea/
+__pycache__/
+.pytest_cache/
+data/
+amostra_gupy.json
+.env
+site/

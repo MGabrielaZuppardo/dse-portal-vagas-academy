@@ -1,0 +1,6 @@
+httpx
+pydantic>=2.7
+pyyaml
+google-genai
+python-dotenv
+pytest
