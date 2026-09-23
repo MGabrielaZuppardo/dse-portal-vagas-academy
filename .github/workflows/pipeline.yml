@@ -1,0 +1,76 @@
+# Coleta semanal de vagas e publicação do portal no GitHub Pages.
+#
+# Configuração no GitHub (uma vez):
+#   Settings > Pages > Source: GitHub Actions
+#   Settings > Secrets and variables > Actions > Variables:
+#     SUPABASE_URL, SUPABASE_ANON_KEY (chave publishable: é pública por design)
+#
+# Se a coleta vier suspeita (poucas vagas) ou os testes falharem, nada é publicado:
+# o site anterior continua no ar e o GitHub avisa por e-mail.
+
+name: Coleta e publicação
+
+on:
+  schedule:
+    # Sexta às 05:00 UTC = 02:00 em Brasília (madrugada de quinta para sexta).
+    # O GitHub pode atrasar execuções agendadas em alguns minutos.
+    - cron: "0 5 * * 5"
+  workflow_dispatch: # botão "Run workflow" na aba Actions
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  coletar-e-construir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Testes
+        run: python -m pytest -q
+
+      - name: Coletar vagas da Gupy
+        run: python -m ingestion.gupy --minimo 200
+
+      - name: Guardar o JSON bruto da coleta (90 dias)
+        uses: actions/upload-artifact@v4
+        with:
+          name: coleta-gupy-${{ github.run_id }}
+          path: data/raw/
+          retention-days: 90
+
+      - name: Gerar o site
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          AUTH_PROVEDORES: ${{ vars.AUTH_PROVEDORES }}
+        run: python -m app.build_site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+  publicar:
+    needs: coletar-e-construir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
