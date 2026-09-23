@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal de Vagas em Dados · DSE Academy</title>
+<meta name="description" content="Vagas de engenharia, análise, ciência de dados e ML no Brasil, com senioridade e stacks extraídas automaticamente.">
+<link rel="icon" href="logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="topo">
+  <a class="marca" href="#/" aria-label="Portal de Vagas DSE Academy, início">
+    <img src="logo.jpg" alt="" width="44" height="44">
+    <span class="marca-texto">
+      <span class="marca-nome">PORTAL DE VAGAS</span>
+      <span class="marca-sub">DSE ACADEMY</span>
+    </span>
+  </a>
+  <button class="menu-botao" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Abrir menu">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+  <nav id="menu-principal" class="menu" aria-label="Principal">
+    <a href="#/" data-rota="busca">Vagas</a>
+    <a href="#/perfil" data-rota="perfil">Perfil de competências</a>
+    <a href="#/candidato" data-rota="candidato">Meu perfil <span class="contador" data-contador-salvas hidden></span></a>
+    <a href="#/entrar" class="menu-entrar" data-link-entrar hidden>Entrar</a>
+  </nav>
+</header>
+
+<div id="conteudo" tabindex="-1"></div>
+<div class="aviso-flutuante" role="status" aria-live="polite" data-aviso hidden></div>
+
+<footer class="rodape">
+  <div class="rodape-marca">
+    <img src="logo.jpg" alt="DSE Academy" width="56" height="56">
+    <span>UM PROJETO<br><strong>DSE ACADEMY</strong></span>
+  </div>
+  <div class="rodape-divisor" aria-hidden="true"></div>
+  <div class="rodape-marca">
+    <svg class="pontos" viewBox="-4 0 68 56" width="62" height="52" role="img" aria-label="Data Science Engineering Community"><use href="#pontos"></use></svg>
+    <span class="rodape-comunidade">DATA<br>SCIENCE<br>ENGINEERING<br><span>COMMUNITY</span></span>
+  </div>
+  <p class="rodape-texto">Portal aberto e gratuito, feito pela comunidade de dados para a comunidade de dados.</p>
+</footer>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="pontos" viewBox="-4 0 68 56"><circle cx="48.0" cy="5" r="0.9"></circle><circle cx="53.0" cy="5" r="1.7"></circle><circle cx="58.0" cy="5" r="2.5"></circle><circle cx="41.2" cy="14" r="0.9"></circle><circle cx="46.8" cy="14" r="1.6"></circle><circle cx="52.4" cy="14" r="2.3"></circle><circle cx="58.0" cy="14" r="3.0"></circle><circle cx="33.2" cy="23" r="0.9"></circle><circle cx="39.4" cy="23" r="1.5"></circle><circle cx="45.6" cy="23" r="2.1"></circle><circle cx="51.8" cy="23" r="2.8"></circle><circle cx="58.0" cy="23" r="3.4"></circle><circle cx="24.0" cy="32" r="0.9"></circle><circle cx="30.8" cy="32" r="1.5"></circle><circle cx="37.6" cy="32" r="2.1"></circle><circle cx="44.4" cy="32" r="2.7"></circle><circle cx="51.2" cy="32" r="3.3"></circle><circle cx="58.0" cy="32" r="3.9"></circle><circle cx="13.6" cy="41" r="0.9"></circle><circle cx="21.0" cy="41" r="1.5"></circle><circle cx="28.4" cy="41" r="2.0"></circle><circle cx="35.8" cy="41" r="2.6"></circle><circle cx="43.2" cy="41" r="3.2"></circle><circle cx="50.6" cy="41" r="3.7"></circle><circle cx="58.0" cy="41" r="4.3"></circle><circle cx="2.0" cy="50" r="0.9"></circle><circle cx="10.0" cy="50" r="1.4"></circle><circle cx="18.0" cy="50" r="2.0"></circle><circle cx="26.0" cy="50" r="2.5"></circle><circle cx="34.0" cy="50" r="3.1"></circle><circle cx="42.0" cy="50" r="3.6"></circle><circle cx="50.0" cy="50" r="4.2"></circle><circle cx="58.0" cy="50" r="4.8"></circle></symbol>
+</svg>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="conta.js"></script>
+<script src="dados.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
