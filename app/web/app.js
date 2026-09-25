@@ -15,8 +15,12 @@
     engenharia_dados: 'Engenharia de Dados', analise_dados: 'Análise de Dados',
     ciencia_dados: 'Ciência de Dados', ml_engineering: 'Machine Learning',
     analytics_engineering: 'Analytics Engineering', bi: 'BI',
-    governanca_dados: 'Governança de Dados', dba: 'Banco de Dados (DBA)', gestao_dados: 'Gestão de Dados'
+    governanca_dados: 'Governança de Dados', dba: 'Banco de Dados (DBA)', gestao_dados: 'Gestão de Dados',
+    negocio_com_dados: 'Negócios com foco em dados'
   };
+  // Funções de negócio que usam dados: aparecem na busca, mas não entram nos rankings de "todas as áreas".
+  var NEGOCIO = 'negocio_com_dados';
+  function contaNoMercado(v, area) { return area ? v.area === area : v.area !== NEGOCIO; }
   var MODELOS = { remoto: 'Remoto', hibrido: 'Híbrido', presencial: 'Presencial' };
   var CONTRATOS = {
     clt: 'CLT', pj: 'PJ', estagio: 'Estágio', trainee: 'Trainee', aprendiz: 'Aprendiz',
@@ -188,7 +192,8 @@
 
   // ---------------------------------------------------------------- estado
 
-  var busca = { q: '', sen: null, stacks: [], empresa: '', modelos: [], ordem: 'recentes', limite: POR_PAGINA };
+  var BUSCA_INICIAL = { q: '', sen: null, stacks: [], empresa: '', modelos: [], negocio: true, ordem: 'recentes', limite: POR_PAGINA };
+  var busca = Object.assign({}, BUSCA_INICIAL);
   var perfil = { area: '', sen: null, sei: '' };
   var raiz = document.getElementById('conteudo');
 
@@ -198,6 +203,7 @@
       if (busca.sen && v.senioridade !== busca.sen) return false;
       if (busca.empresa && v.empresa !== busca.empresa) return false;
       if (busca.modelos.length && busca.modelos.indexOf(v.modelo) < 0) return false;
+      if (!busca.negocio && v.area === NEGOCIO) return false;
       for (var i = 0; i < busca.stacks.length; i++) if (v._stacks.indexOf(busca.stacks[i]) < 0) return false;
       for (var j = 0; j < termos.length; j++) if (v._texto.indexOf(termos[j]) < 0) return false;
       return true;
@@ -237,7 +243,7 @@
   }
 
   function filtrosAtivos() {
-    return (busca.sen ? 1 : 0) + busca.stacks.length + (busca.empresa ? 1 : 0) + busca.modelos.length;
+    return (busca.sen ? 1 : 0) + busca.stacks.length + (busca.empresa ? 1 : 0) + busca.modelos.length + (busca.negocio ? 0 : 1);
   }
 
   // ---------------------------------------------------------------- busca
@@ -284,6 +290,9 @@
             '<fieldset><legend class="rotulo">Stacks</legend>' + stacks + '</fieldset>' +
             '<div class="grupo"><label class="rotulo" for="empresa">Empresa</label><select id="empresa" class="seletor">' + empresas + '</select></div>' +
             '<fieldset><legend class="rotulo">Modelo de trabalho</legend>' + modelos + '</fieldset>' +
+            '<fieldset><legend class="rotulo">Tipo de vaga</legend>' +
+              '<label class="caixa"><input type="checkbox" data-negocio' + (busca.negocio ? ' checked' : '') + '> Incluir funções de negócio com foco em dados</label>' +
+              '<span class="nota">Ex.: comercial, RH ou operações que usam dados no dia a dia.</span></fieldset>' +
             '<p class="nota">' + VISIVEIS.length + ' vagas abertas · ' + COM_STACKS + ' com stacks identificadas · coleta de ' + esc(dataHora(D.coletada_em)) + '</p>' +
           '</div>' +
         '</details>' +
@@ -305,6 +314,7 @@
         '<span class="cartao-info">' + info + '</span>' +
         '<div class="etiquetas">' +
           (v.senioridade && NOME_NIVEL[v.senioridade] ? '<span class="etiqueta-nivel">' + NOME_NIVEL[v.senioridade] + '</span>' : '') +
+          (v.area === NEGOCIO ? '<span class="etiqueta-neutra">' + AREAS[NEGOCIO] + '</span>' : '') +
           stacks +
         '</div>' +
         (comAderencia && v._aderencia && v._aderencia.pct >= 0
@@ -365,6 +375,7 @@
     raiz.querySelectorAll('[data-sen]').forEach(function (b) { b.setAttribute('aria-pressed', String((b.dataset.sen || null) === busca.sen)); });
     raiz.querySelectorAll('[data-stack]').forEach(function (b) { b.setAttribute('aria-pressed', String(busca.stacks.indexOf(b.dataset.stack) >= 0)); });
     raiz.querySelectorAll('[data-modelo]').forEach(function (c) { c.checked = busca.modelos.indexOf(c.dataset.modelo) >= 0; });
+    var neg = raiz.querySelector('[data-negocio]'); if (neg) neg.checked = busca.negocio;
     var emp = raiz.querySelector('#empresa'); if (emp) emp.value = busca.empresa;
     var q = raiz.querySelector('#busca'); if (q && q.value !== busca.q) q.value = busca.q;
   }
@@ -476,7 +487,7 @@
     var alvo = raiz.querySelector('[data-perfil]');
     if (!alvo) return;
     var pool = VISIVEIS.filter(function (v) {
-      return v._stacks.length && (!perfil.area || v.area === perfil.area) && (!perfil.sen || v.senioridade === perfil.sen);
+      return v._stacks.length && contaNoMercado(v, perfil.area) && (!perfil.sen || v.senioridade === perfil.sen);
     });
     var titulo = (AREAS[perfil.area] || 'Todas as áreas') + ' · ' + (perfil.sen ? NOME_NIVEL[perfil.sen] : 'Todos os níveis');
     var n = pool.length;
@@ -851,7 +862,7 @@
 
     // Base de comparação: vagas abertas da área de interesse (ou todas).
     var area = perfilConta && AREAS[perfilConta.area] ? perfilConta.area : '';
-    var pool = VISIVEIS.filter(function (v) { return v._stacks.length && (!area || v.area === area); });
+    var pool = VISIVEIS.filter(function (v) { return v._stacks.length && contaNoMercado(v, area); });
     var ranking = contar(pool, function (v) { return v._principais; });
     var top = ranking.slice(0, 10);
     var nomeGrupo = area ? AREAS[area] : 'vagas de dados';
@@ -1013,6 +1024,7 @@
       busca.modelos = t.checked ? busca.modelos.concat([t.dataset.modelo]) : busca.modelos.filter(function (m) { return m !== t.dataset.modelo; });
       atualizarBusca();
     }
+    else if (t.hasAttribute('data-negocio')) { busca.negocio = t.checked; atualizarBusca(); }
     else if (t.hasAttribute('data-ordem')) { busca.ordem = t.value; renderResultados(); }
     else if (t.id === 'funcao') { perfil.area = t.value; }
   });
@@ -1114,7 +1126,7 @@
       });
     }
     else if (b.dataset.acao === 'limpar') {
-      busca = { q: '', sen: null, stacks: [], empresa: '', modelos: [], ordem: 'recentes', limite: POR_PAGINA };
+      busca = Object.assign({}, BUSCA_INICIAL, { stacks: [], modelos: [] });
       atualizarBusca();
     }
     else if (b.dataset.acao === 'mais') {
