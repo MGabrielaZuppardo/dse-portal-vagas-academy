@@ -79,14 +79,24 @@ def montar_vagas(
     return vagas
 
 
+def _script(variavel: str, conteudo) -> str:
+    """Script JS com JSON compacto: funciona abrindo o HTML direto do disco (file://), sem fetch."""
+    return f"window.{variavel} = " + json.dumps(conteudo, ensure_ascii=False, separators=(",", ":")) + ";\n"
+
+
 def exportar(destino: Path, dir_raw: Path = DIR_RAW, dir_enriquecido: Path = DIR_ENRIQUECIDO) -> dict:
-    """Grava `destino` como script JS (window.DADOS = {...}), que funciona abrindo o HTML
-    direto do disco (file://), sem servidor."""
+    """Grava `destino` (dados.js, window.DADOS) e, ao lado, descricoes.js (window.DESCRICOES).
+
+    As descrições são ~85% do volume e só são necessárias na página da vaga e na busca por
+    texto completo; por isso ficam num arquivo separado que o site carrega depois da primeira
+    renderização. dados.js fica com o necessário para busca, filtros e perfis.
+    """
     arquivo = ultimo_bruto(dir_raw)
     coletada_em = datetime.fromtimestamp(arquivo.stat().st_mtime, timezone.utc)
     enriquecimentos = carregar_enriquecimentos(dir_enriquecido) if dir_enriquecido.exists() else {}
     taxonomia = Taxonomia.carregar()
     vagas = montar_vagas(json.loads(arquivo.read_text(encoding="utf-8")), enriquecimentos, coletada_em, taxonomia)
+    descricoes = {v["id"]: v.pop("descricao") for v in vagas}
 
     dados = {
         "coletada_em": coletada_em.isoformat(),
@@ -96,9 +106,13 @@ def exportar(destino: Path, dir_raw: Path = DIR_RAW, dir_enriquecido: Path = DIR
         "vagas": vagas,
     }
     destino.parent.mkdir(parents=True, exist_ok=True)
-    destino.write_text("window.DADOS = " + json.dumps(dados, ensure_ascii=False) + ";\n", encoding="utf-8")
+    destino.write_text(_script("DADOS", dados), encoding="utf-8")
+    arquivo_descricoes = destino.with_name("descricoes.js")
+    arquivo_descricoes.write_text(_script("DESCRICOES", descricoes), encoding="utf-8")
     return {
         "vagas": len(vagas),
         "com_stacks": sum(bool(v["citadas"]) for v in vagas),
         "enriquecidas": sum(v["enriquecida"] for v in vagas),
+        "kb_dados": destino.stat().st_size // 1024,
+        "kb_descricoes": arquivo_descricoes.stat().st_size // 1024,
     }
