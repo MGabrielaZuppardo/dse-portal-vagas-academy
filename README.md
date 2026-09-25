@@ -67,8 +67,8 @@ Um projeto da comunidade DSE Academy, feito pela comunidade de dados para a comu
   enrichment/taxonomia.py  stacks por palavra-chave (taxonomy.yaml)
   enrichment/extractor.py  senioridade e área pelo título; LLM opcional
           │
-  app/dados.py             junta coleta + stacks + enriquecimento ──► dados.js
-  app/build_site.py        copia app/web/ e gera site/ (dados.js + config.js)
+  app/dados.py             junta coleta + stacks + enriquecimento ──► dados.js + descricoes.js
+  app/build_site.py        copia app/web/ e gera site/ (dados.js, descricoes.js e config.js)
           │
   Navegador                busca, filtros, perfil de competências e aderência rodam no cliente
           │
@@ -76,7 +76,8 @@ Um projeto da comunidade DSE Academy, feito pela comunidade de dados para a comu
 ```
 
 O portal é um **site estático**: não há servidor próprio. Os dados das vagas são gerados no build e todos
-os cálculos rodam no navegador. Só o login e o perfil do candidato usam um serviço externo (Supabase).
+os cálculos rodam no navegador. As descrições das vagas (cerca de 85% do volume) ficam em `descricoes.js`,
+carregado em segundo plano depois que a página aparece: a abertura baixa só `dados.js` (~50 KB comprimido). Só o login e o perfil do candidato usam um serviço externo (Supabase).
 
 ---
 
