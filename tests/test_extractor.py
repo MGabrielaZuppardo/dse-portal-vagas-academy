@@ -111,9 +111,11 @@ def test_lote_para_quando_cota_esgota():
     assert len(chamadas) == 1  # não tenta as outras vagas
 
 
+# Títulos reais da coleta da Gupy (set/2026), um ou mais por regra.
 @pytest.mark.parametrize(
     "titulo, esperado",
     [
+        # Áreas de dados (regras originais)
         ("Engenheiro de Dados Pleno (Azure/Databricks)", "engenharia_dados"),
         ("Pessoa Engenheira de Dados Sênior (DataSecOps)", "engenharia_dados"),
         ("Analytics Engineer Sr", "analytics_engineering"),
@@ -124,10 +126,37 @@ def test_lote_para_quando_cota_esgota():
         ("Especialista em Banco de Dados IDMS", "dba"),
         ("Analista de BI Pleno", "bi"),
         ("Analista de Dados Pleno - Unidade Santana", "analise_dados"),
-        ("Analista Comercial Pleno | Dados e PBM", None),
+        # Camada 1: "dados" em outro sentido
+        ("ADVOGADO PL- Privacidade & Proteção de Dados", "fora_do_escopo"),
+        ("ANALISTA DE PRIVACIDADE E PROTEÇÃO DE DADOS JR.", "fora_do_escopo"),
+        ("Analista de Compliance Sênior - Privacidade de Dados", "fora_do_escopo"),
+        ("ANALISTA DE REDES E COMUNICAÇÃO DE DADOS (TI) PLENO P/C13 - TJMG", "fora_do_escopo"),
+        ("374889 - JARAGUA DO SUL - TÉCNICO DE SUPORTE (TELECOMUNICACOES REDES DE DADOS)", "fora_do_escopo"),
+        ("Atendimento ao Cliente para Coleta de Dados - Trindade/GO (200h)", "fora_do_escopo"),
+        ("ASSISTENTE DE PROCESSAMENTO DE DADOS - CAMPOS DOS GOYTACAZES", "fora_do_escopo"),
+        ("Técnico (a) em Eletrotécnica - Dados e Indicadores", "fora_do_escopo"),
+        # Camada 2: variações que a regra original perdia
+        ("ANALISTA DADOS JR", "analise_dados"),
+        ("Analista Jr de Dados - Goiânia GO", "analise_dados"),
+        ("Especialista em Dados", "analise_dados"),
+        ("Estagiário(a) - Dados | Maxpar", "analise_dados"),
+        ("Programa de Estágio em Dados, Relatórios e Indicadores", "analise_dados"),
+        ("Eng de Dados Sr - Certificado Databricks", "engenharia_dados"),
+        ("Arquiteto(a) de Dados – AWS & Databricks", "engenharia_dados"),
+        ("Analista de infraestrutura para Dados & AI — Pleno", "engenharia_dados"),
+        ("Administrador de Dados Sênior", "dba"),
+        ("PESSOA ADMINISTRADORA SR - BANCO DADOS", "dba"),
+        ("ESPECIALISTA EM DADOS MESTRES", "governanca_dados"),
+        ("Tech Lead de Dados", "gestao_dados"),
+        # Camada 3: funções de negócio que usam dados
+        ("Analista Comercial Pleno | Dados e PBM", "negocio_com_dados"),
+        ("Analista de Recursos Humanos - (Foco em Dados)", "negocio_com_dados"),
+        ("Analista de Transportes Pl - Dados e Operações", "negocio_com_dados"),
+        # Sem relação com dados no título
+        ("Analista Comercial Pleno", None),
     ],
 )
-def test_area_pelo_titulo(titulo, esperado):
-    from enrichment.extractor import area_pelo_titulo
+def test_classificar_area(titulo, esperado):
+    from enrichment.extractor import classificar_area
 
-    assert area_pelo_titulo(titulo) == esperado
+    assert classificar_area(titulo) == esperado
