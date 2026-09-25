@@ -221,7 +221,13 @@ Fica a publicação aberta mais recente; banco de talentos só representa o grup
 
 - **Senioridade:** pelo título ("Estágio", "Jr", "Pleno", "III", "Sênior", "Especialista", "Coordenador"…) e pelo
   tipo de contrato (estágio, trainee, aprendiz). Níveis: Entrada, Júnior, Pleno, Sênior, Especialista e Gestão.
-- **Área:** pelo título (Engenharia de Dados, Análise, Ciência, ML, Analytics Engineering, BI, Governança, DBA e Gestão).
+- **Área:** pelo título, em três camadas (`classificar_area` em `enrichment/extractor.py`):
+  1. **Fora do escopo:** "dados" em outro sentido (privacidade e proteção de dados, redes e telecom, coleta ou
+     processamento de dados). Essas vagas não aparecem no portal.
+  2. **Áreas de dados:** Engenharia, Análise, Ciência, ML, Analytics Engineering, BI, Governança, DBA e Gestão,
+     incluindo variações comuns ("Analista Dados JR", "Eng de Dados", "Arquiteto(a) de Dados", "Estagiário(a) - Dados").
+  3. **Negócios com foco em dados:** funções de negócio que usam dados (comercial, RH, operações). Aparecem na busca
+     com etiqueta própria e podem ser ocultadas no filtro, mas não entram nos rankings de "todas as áreas".
 
 ### Aderência
 
@@ -240,7 +246,7 @@ recebem o aviso "amostra pequena".
 - A busca por palavra-chave **não separa** obrigatória de desejável; vagas que listam alternativas ("AWS, Azure ou GCP")
   contam todas, o que reduz a aderência.
 - Menções fora de contexto também contam (ex.: "formação em Estatística" conta como a skill Estatística).
-- Sem LLM, vagas que citam "dados" mas não são da área (ex.: privacidade/LGPD jurídica) não são excluídas.
+- A classificação de área depende do título: títulos genéricos ou fora do padrão podem cair na área errada.
 - A coleta é semanal: vagas encerradas antes do prazo informado podem aparecer por até uma semana.
 
 ---

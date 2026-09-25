@@ -73,7 +73,8 @@ class Area(StrEnum):
     GOVERNANCA_DADOS = "governanca_dados"
     DBA = "dba"
     GESTAO_DADOS = "gestao_dados"
-    FORA_DO_ESCOPO = "fora_do_escopo"  # "dados" no título, mas não é vaga de dados (LGPD, redes, comercial...)
+    NEGOCIO_COM_DADOS = "negocio_com_dados"  # função de negócio que usa dados (comercial, RH, operações...)
+    FORA_DO_ESCOPO = "fora_do_escopo"  # "dados" em outro sentido (privacidade/LGPD, redes, coleta/digitação)
 
 
 class GrupoAfirmativo(StrEnum):
