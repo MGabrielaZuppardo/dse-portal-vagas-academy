@@ -81,6 +81,14 @@ window.Conta = (function () {
       }));
     },
 
+    // ---- relato de erro numa vaga (não exige login; o banco preenche user_id quando houver)
+    reportar: async function (r) {
+      checar(await sb.from('reportes_vaga').insert({
+        vaga_id: r.vagaId, titulo: r.titulo || null, empresa: r.empresa || null, url: r.url || null,
+        tipo: r.tipo, stacks: (r.stacks || []).slice(0, 30), detalhe: (r.detalhe || '').slice(0, 500) || null
+      }));
+    },
+
     // ---- LGPD: apaga conta, perfil e vagas salvas
     excluirConta: async function () {
       exigirUsuario();

@@ -438,9 +438,88 @@
             '<a href="' + esc(v.url) + '" target="_blank" rel="noopener">Gupy · anúncio original</a>' +
             (v.duplicatas ? '<span class="nota">Publicada ' + (v.duplicatas + 1) + ' vezes pela empresa (deduplicada)</span>' : '') +
             '<span class="nota">Última verificação: ' + esc(dataHora(D.coletada_em)) + '</span></section>' +
+          htmlReportar(v) +
         '</aside>' +
       '</div>' +
     '</div>';
+  }
+
+  // ---------------------------------------------------------------- reportar erro na vaga
+
+  var TIPOS_REPORTE = [
+    ['stack_errada', 'Stack identificada errada'],
+    ['nao_e_vaga_de_dados', 'Não é uma vaga de dados'],
+    ['senioridade_errada', 'Senioridade errada'],
+    ['vaga_encerrada', 'A vaga já foi encerrada'],
+    ['outro', 'Outro problema']
+  ];
+
+  // Lembra neste navegador quais vagas a pessoa já reportou (só conveniência; o envio vai para o banco).
+  var reportadas = (function () {
+    var CHAVE = 'portal-vagas:reportadas', ids = {};
+    try { (JSON.parse(localStorage.getItem(CHAVE)) || []).forEach(function (id) { ids[id] = true; }); } catch (e) { /* sem storage */ }
+    return {
+      tem: function (id) { return !!ids[id]; },
+      marcar: function (id) {
+        ids[id] = true;
+        try { localStorage.setItem(CHAVE, JSON.stringify(Object.keys(ids).slice(-200))); } catch (e) { /* ok */ }
+      }
+    };
+  })();
+
+  function htmlReportar(v) {
+    if (!Conta.ativa || !Conta.reportar) return ''; // sem Supabase não há para onde enviar
+    if (reportadas.tem(v.id)) {
+      return '<section class="painel reportar"><h2 class="painel-titulo">Algo errado nesta vaga?</h2>' +
+        '<p class="nota">Você já enviou um relato sobre esta vaga. Obrigado por ajudar a melhorar o portal!</p></section>';
+    }
+    var stacks = v._stacks.map(function (id) {
+      return '<label class="caixa"><input type="checkbox" name="rep-stack" value="' + esc(id) + '"> ' + esc(nomeSkill(id)) + '</label>';
+    }).join('');
+    var logado = !!(Conta.usuario && Conta.usuario());
+    return '<section class="painel reportar">' +
+      '<details data-reportar><summary><h2 class="painel-titulo">Algo errado nesta vaga?</h2></summary>' +
+        '<form class="pilha" data-acao="reportar" data-vaga="' + esc(v.id) + '">' +
+          '<fieldset><legend class="rotulo">O que está errado?</legend>' +
+            TIPOS_REPORTE.map(function (t, i) {
+              return '<label class="caixa"><input type="radio" name="rep-tipo" value="' + t[0] + '"' + (i === 0 ? ' required' : '') + '> ' + t[1] + '</label>';
+            }).join('') +
+          '</fieldset>' +
+          (stacks ? '<fieldset data-rep-stacks hidden><legend class="rotulo">Quais stacks estão erradas?</legend><div class="rep-stacks">' + stacks + '</div></fieldset>' : '') +
+          '<label class="rotulo" for="rep-detalhe">Detalhes (opcional)</label>' +
+          '<textarea id="rep-detalhe" class="campo campo-texto" maxlength="500" rows="3" placeholder="Ex.: a vaga pede Spark, não Snowflake"></textarea>' +
+          '<button type="submit" class="botao-cheio">Enviar relato</button>' +
+          '<p class="nota">Não precisa entrar na conta.' + (logado ? ' Como você está conectada(o), o relato fica ligado à sua conta.' : ' O relato é anônimo.') + '</p>' +
+        '</form>' +
+      '</details>' +
+      '<div class="nota" role="status" data-reportar-status></div>' +
+    '</section>';
+  }
+
+  function enviarRelato(form) {
+    var v = POR_ID[form.dataset.vaga];
+    var tipo = (form.querySelector('input[name=rep-tipo]:checked') || {}).value;
+    var status = raiz.querySelector('[data-reportar-status]');
+    if (!v || !tipo) return;
+    var stacks = tipo === 'stack_errada'
+      ? [].map.call(form.querySelectorAll('input[name=rep-stack]:checked'), function (c) { return nomeSkill(c.value); })
+      : [];
+    var botao = form.querySelector('button[type=submit]');
+    botao.disabled = true;
+    status.textContent = 'Enviando…';
+    Conta.reportar({
+      vagaId: v.id, titulo: v.titulo, empresa: v.empresa, url: v.url, tipo: tipo,
+      stacks: stacks, detalhe: form.querySelector('#rep-detalhe').value.trim()
+    }).then(function () {
+      reportadas.marcar(v.id);
+      var det = raiz.querySelector('[data-reportar]');
+      if (det) det.remove();
+      status.textContent = 'Relato enviado. Obrigado por ajudar a melhorar o portal!';
+    }).catch(function (err) {
+      console.error(err);
+      botao.disabled = false;
+      status.textContent = 'Não foi possível enviar agora. Tente de novo em instantes.';
+    });
   }
 
   // ---------------------------------------------------------------- perfil
@@ -1025,6 +1104,10 @@
       atualizarBusca();
     }
     else if (t.hasAttribute('data-negocio')) { busca.negocio = t.checked; atualizarBusca(); }
+    else if (t.name === 'rep-tipo') {
+      var campoStacks = raiz.querySelector('[data-rep-stacks]');
+      if (campoStacks) campoStacks.hidden = t.value !== 'stack_errada';
+    }
     else if (t.hasAttribute('data-ordem')) { busca.ordem = t.value; renderResultados(); }
     else if (t.id === 'funcao') { perfil.area = t.value; }
   });
@@ -1042,6 +1125,8 @@
       enviarLinkDeAcesso(raiz.querySelector('#email').value.trim(), e.target.querySelector('button[type=submit]'));
     } else if (acao === 'salvar-perfil') {
       salvarPerfilDaPagina(e.target.querySelector('button[type=submit]'));
+    } else if (acao === 'reportar') {
+      enviarRelato(e.target);
     } else if (acao === 'add-skill') {
       var campo = raiz.querySelector('#nova-skill');
       if (campo.value.trim()) adicionarSkill(campo.value);

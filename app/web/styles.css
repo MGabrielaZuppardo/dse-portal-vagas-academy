@@ -331,6 +331,17 @@ legend { padding: 0; margin-bottom: 12px; }
 .cobertura-barra { width: 100%; max-width: 360px; height: 10px; }
 .chip-pct { font-size: 11px; opacity: .75; margin-left: 2px; }
 
+/* ---------------- Reportar erro ---------------- */
+.reportar details > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.reportar details > summary::-webkit-details-marker { display: none; }
+.reportar details > summary::after { content: "+"; font-size: 22px; color: var(--azul); }
+.reportar details[open] > summary::after { content: "−"; }
+.reportar form { margin-top: 12px; gap: 12px; }
+.reportar .caixa { min-height: 44px; }
+.rep-stacks { display: flex; flex-wrap: wrap; gap: 0 16px; }
+.campo-texto { height: auto; padding: 10px 12px; resize: vertical; font-family: inherit; line-height: 1.5; }
+[data-reportar-status]:empty { display: none; }
+
 /* ---------------- Aderência à vaga ---------------- */
 .aderencia-grade { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
 .aderencia-resumo { grid-column: 1 / -1; }
