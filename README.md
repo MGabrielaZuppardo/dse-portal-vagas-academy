@@ -38,6 +38,7 @@ Um projeto da comunidade DSE Academy, feito pela comunidade de dados para a comu
 | **Perfil de competências** (`#/perfil` → `#/perfil/resultado`) | As skills mais pedidas por área e nível, com o percentual de vagas que citam cada uma, e o que priorizar a partir do que a pessoa já sabe. O resultado tem URL própria e pode ser compartilhado. |
 | **Meu perfil** (`#/candidato`) | Vagas salvas e **Minhas skills**: etiquetas editáveis com autocompletar, cobertura das 10 skills mais pedidas na área de interesse e sugestões do que aprender. |
 | **Entrar** (`#/entrar`) | Login por link no e-mail, sem senha. |
+| **Boas-vindas** (`#/boas-vindas`) | No primeiro login, 3 passos (área, nível e skills, com sugestões da área) que já deixam a busca ordenada por aderência. Pode ser pulado e refeito em Meu perfil. |
 | **Algo errado nesta vaga?** (na página da vaga) | Relato de stack errada, vaga fora da área, senioridade errada ou vaga encerrada, sem precisar de login. |
 
 **Por trás do portal**
