@@ -95,6 +95,7 @@ def main() -> None:
     indice = (args.saida / "index.html").resolve()
     print(f"{resumo['vagas']} vagas, {resumo['com_stacks']} com stacks identificadas, "
           f"{resumo['enriquecidas']} enriquecidas por LLM -> {indice}")
+    print(f"Arquivos: dados.js {resumo['kb_dados']} KB (carga inicial), descricoes.js {resumo['kb_descricoes']} KB (sob demanda)")
     print("Login: " + ("configurado (Supabase)" if resumo["login"] else "não configurado; vagas salvas ficam no navegador"))
     if args.servir:
         servir(args.saida)
