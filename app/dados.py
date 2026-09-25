@@ -11,7 +11,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from enrichment.extractor import area_pelo_titulo, senioridade_explicita
+from enrichment.extractor import classificar_area, senioridade_explicita
 from enrichment.schema import deduplicar
 from enrichment.taxonomia import Taxonomia
 from ingestion.gupy import normalizar
@@ -70,7 +70,7 @@ def montar_vagas(
             "citadas": taxonomia.extrair_do_texto(f"{v.titulo}\n{v.descricao}"),
             "duplicatas": len(v.duplicatas),
             "enriquecida": e is not None,
-            "area": x.get("area") or (area.value if (area := area_pelo_titulo(v.titulo)) else None),
+            "area": x.get("area") or (area.value if (area := classificar_area(v.titulo)) else None),
             "senioridade": x.get("senioridade") or (nivel_titulo.value if nivel_titulo else None),
             "obrigatorias": e["skills_obrigatorias"] if e else [],
             "desejaveis": e["skills_desejaveis"] if e else [],

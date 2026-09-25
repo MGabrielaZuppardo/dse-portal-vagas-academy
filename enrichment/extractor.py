@@ -42,6 +42,7 @@ from enrichment.schema import (
     VagaBruta,
     VagaEnriquecida,
     deduplicar,
+    normalizar_texto,
 )
 from enrichment.taxonomia import Taxonomia, chave_skill
 
@@ -49,7 +50,7 @@ log = logging.getLogger(__name__)
 load_dotenv()  # antes das constantes abaixo, que leem o ambiente
 
 # Incremente sempre que mudar SYSTEM_PROMPT, montar_prompt ou ExtracaoLLM.
-PROMPT_VERSION = "v2"
+PROMPT_VERSION = "v3"
 MODELO_OLLAMA = os.environ.get("OLLAMA_MODEL") or "qwen2.5:7b"
 MODELO_GEMINI = os.environ.get("GEMINI_MODEL") or "gemini-3.6-flash"
 OLLAMA_URL = os.environ.get("OLLAMA_URL") or "http://localhost:11434"
@@ -74,8 +75,10 @@ Responda apenas com o JSON do schema. Não invente: se a informação não estiv
 - governanca_dados: governança, qualidade, catálogo, data owners.
 - dba: administração de bancos de dados.
 - gestao_dados: liderança de times ou áreas de dados.
-- fora_do_escopo: a vaga cita "dados" mas não é de dados (ex.: privacidade/LGPD jurídica,
-  redes de dados/telecom, comercial ou financeiro que apenas "usa dados", cadastro/digitação).
+- negocio_com_dados: função de negócio (comercial, finanças, RH, operações, marketing...)
+  que usa dados como parte do trabalho, mas não é uma vaga de dados.
+- fora_do_escopo: a vaga cita "dados" em outro sentido (ex.: privacidade/LGPD jurídica,
+  redes de dados/telecom, coleta ou digitação de dados).
 
 ## senioridade
 Use o título primeiro:
@@ -141,25 +144,50 @@ def senioridade_explicita(vaga: VagaBruta) -> Senioridade | None:
     return None
 
 
-# Área pelo título, para vagas sem enriquecimento por LLM. Ordem importa: a primeira
+# Área pelo título, para vagas sem enriquecimento por LLM, em três camadas. Os padrões
+# rodam sobre o título normalizado (minúsculas, sem acento). Ordem importa: a primeira
 # regra que casar vence ("Gerente de Engenharia de Dados" -> gestão; "Analytics Engineer" -> AE).
+
+# Camada 1: "dados" em outro sentido (jurídico/privacidade, telecom, atendimento, digitação).
+_FORA_DO_ESCOPO = re.compile(
+    r"privacidade|protecao de dados|advogad|juridic|telecomunica|comunicacao de dados"
+    r"|redes (e )?(de )?comunica|coleta de dados|processamento de dados|eletrotecnic"
+)
+
+# Camada 2: áreas de dados, incluindo as variações comuns na Gupy
+# ("Analista Dados JR", "Eng de Dados", "Arquiteto(a) de Dados", "Estagiário(a) - Dados").
 _AREA_TITULO = [
-    (Area.GESTAO_DADOS, r"coordena|gerente|\bhead\b|\bdiretora?\b|superintendente"),
+    (Area.GESTAO_DADOS, r"coordena|gerente|\bhead\b|\bdiretora?\b|superintendente|tech lead|squad leader|product owner"),
     (Area.ANALYTICS_ENGINEERING, r"analytics engineer"),
-    (Area.ML_ENGINEERING, r"machine learning|\bml\b|mlops|\bllm|\bia\b|intelig[eê]ncia artificial"),
-    (Area.ENGENHARIA_DADOS, r"engenh|engineer|data platform|arquitet[oa] de dados"),
-    (Area.CIENCIA_DADOS, r"cientista|scientist|ci[eê]ncia de dados"),
-    (Area.GOVERNANCA_DADOS, r"governan[cç]a|data governance|qualidade de dados|data quality"),
-    (Area.DBA, r"\bdba\b|banco de dados|database admin"),
+    (Area.ML_ENGINEERING, r"machine learning|\bml\b|mlops|\bllm|\bia\b|inteligencia artificial"),
+    (Area.ENGENHARIA_DADOS, r"engenh|engineer|data platform|\beng\.? (de )?dados|arquitet\w*(\(a\))? (e eng\. )?de dados"
+                            r"|arquitetura de dados|plataforma de dados|infraestrutura (para|de) dados|observabilidade de dados"),
+    (Area.CIENCIA_DADOS, r"cientista|scientist|ciencia de dados"),
+    (Area.GOVERNANCA_DADOS, r"governanca|data governance|qualidade de dados|data quality|dados mestres|master data"
+                            r"|gestao de dados|controle de dados"),
+    (Area.DBA, r"\bdba\b|banco (de )?dados|database admin|administrador\w*(\(a\))? (de )?dados"),
     (Area.BI, r"\bbi\b|business intelligence|power ?bi"),
-    (Area.ANALISE_DADOS, r"analista de dados|data analyst|an[aá]lise de dados|analytics|analista (?:de )?intelig"),
+    (Area.ANALISE_DADOS, r"analista de dados|data analyst|analise de dados|analytics|analista (de )?intelig"
+                         r"|analista (jr |pl |sr |junior |pleno |senior )?(de )?dados|especialista (de|em) dados"
+                         r"|estagi\w*(\(a\))?( -)? (de )?dados|estagio (em|de) dados|aprendiz de dados"
+                         r"|consultor\w*(\(a\))? de dados|assistente de dados|dados e indicadores|inteligencia de dados"),
 ]
 
+# Camada 3: sobrou "dados"/"data" no título -> função de negócio que usa dados
+# ("Analista Comercial | Dados", "Analista de RH (foco em dados)").
+_CITA_DADOS = re.compile(r"\bdados\b|\bdata\b")
 
-def area_pelo_titulo(titulo: str) -> Area | None:
+
+def classificar_area(titulo: str) -> Area | None:
+    """Área da vaga pelo título. None quando o título não indica nada relacionado a dados."""
+    t = normalizar_texto(titulo)
+    if _FORA_DO_ESCOPO.search(t):
+        return Area.FORA_DO_ESCOPO
     for area, padrao in _AREA_TITULO:
-        if re.search(padrao, titulo, re.IGNORECASE):
+        if re.search(padrao, t):
             return area
+    if _CITA_DADOS.search(t):
+        return Area.NEGOCIO_COM_DADOS
     return None
 
 
