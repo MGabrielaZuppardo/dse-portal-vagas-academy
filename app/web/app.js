@@ -172,11 +172,42 @@
   D.vagas.forEach(function (v) {
     v._ts = Date.parse(v.publicada_em) || 0;
     v._titulo = norm(v.titulo);
-    v._texto = norm(v.titulo + ' ' + v.empresa + ' ' + v.descricao);
+    // Até as descrições chegarem (descricoes.js), a busca cobre título, empresa e nomes das stacks.
+    var nomesStacks = (v.citadas || []).concat(v.obrigatorias || [], v.desejaveis || []).map(nomeSkill).join(' ');
+    v._texto = norm(v.titulo + ' ' + v.empresa + ' ' + nomesStacks);
     // Stacks da vaga: as do LLM quando ela foi enriquecida; senão, as citadas (palavra-chave).
     v._principais = v.enriquecida ? (v.obrigatorias || []) : (v.citadas || []);
     v._stacks = v.enriquecida ? (v.obrigatorias || []).concat(v.desejaveis || []) : (v.citadas || []);
   });
+  // Descrições em arquivo separado (~85% do volume): carregadas em segundo plano depois da
+  // primeira renderização, ou na hora quando a pessoa abre uma vaga. Script (não fetch) para
+  // funcionar também abrindo o HTML direto do disco.
+  var descricoes = (function () {
+    var estado = 'pendente', espera = [];
+    function avisarTodos(ok) { var fila = espera; espera = []; fila.forEach(function (f) { f(ok); }); }
+    return {
+      prontas: function () { return estado === 'ok'; },
+      falharam: function () { return estado === 'erro'; },
+      de: function (id) { return estado === 'ok' ? (window.DESCRICOES || {})[id] || '' : null; },
+      carregar: function (cb) {
+        if (cb) { if (estado === 'ok' || estado === 'erro') { cb(estado === 'ok'); return; } espera.push(cb); }
+        if (estado !== 'pendente') return;
+        estado = 'carregando';
+        var script = document.createElement('script');
+        script.src = 'descricoes.js';
+        script.async = true;
+        script.onload = function () {
+          var todas = window.DESCRICOES || {};
+          D.vagas.forEach(function (v) { if (todas[v.id]) v._texto += ' ' + norm(todas[v.id]); });
+          estado = 'ok';
+          avisarTodos(true);
+        };
+        script.onerror = function () { estado = 'erro'; avisarTodos(false); };
+        document.head.appendChild(script);
+      }
+    };
+  })();
+
   // Banco de talentos não é vaga aberta; "fora do escopo" é ruído da busca por "dados".
   // A coleta é semanal: vagas com prazo de candidatura vencido somem sem esperar a próxima.
   var HOJE = new Date().toLocaleDateString('sv-SE'); // AAAA-MM-DD no fuso de quem acessa
@@ -337,6 +368,7 @@
     var r = filtrarBusca();
     var ordem = ordemEfetiva();
     var temTexto = !!norm(busca.q).trim();
+    var buscaParcial = temTexto && !descricoes.prontas();
     var alvoPerfil = busca.sen ? 'o nível ' + NOME_NIVEL[busca.sen] : 'vagas de dados';
     var linkPerfil = linkResultadoPerfil({ sen: busca.sen });
     alvo.innerHTML =
@@ -348,6 +380,8 @@
           '<option value="aderentes"' + (busca.ordem === 'aderentes' ? ' selected' : '') + '>Mais aderentes ao meu perfil</option>' +
         '</select></label>' +
       '</div>' +
+      (buscaParcial ? '<p class="nota">Buscando em títulos, empresas e stacks.' +
+        (descricoes.falharam() ? '' : ' A busca no texto completo das vagas fica disponível em instantes.') + '</p>' : '') +
       (busca.ordem === 'aderentes' && ordem !== 'aderentes'
         ? '<div class="aviso-inline" role="status"><strong>Informe o que você já sabe para ordenar por aderência.</strong> ' +
             '<form class="aviso-form" data-acao="habilidades-busca"><label class="sr" for="b-sei">Suas habilidades</label>' +
@@ -420,7 +454,8 @@
               fato('CONTRATO', CONTRATOS[v.contrato] || 'Não informado') +
               fato('SALÁRIO', sal) +
             '</div>' +
-            '<section class="secao"><h2>Sobre a vaga</h2><p class="descricao">' + esc(v.descricao) + '</p></section>' +
+            '<section class="secao"><h2>Sobre a vaga</h2><p class="descricao" data-descricao="' + esc(v.id) + '">' +
+              (descricoes.prontas() ? esc(descricoes.de(v.id)) : 'Carregando a descrição…') + '</p></section>' +
             '<div class="acoes">' +
               '<a class="botao-primario" href="' + esc(v.url) + '" target="_blank" rel="noopener">Candidatar-se na Gupy ' + ICONE_EXTERNO + '</a>' +
               '<button type="button" class="botao-secundario" data-salvar="' + esc(v.id) + '" aria-pressed="' + salva + '">' + (salva ? 'Vaga salva' : 'Salvar vaga') + '</button>' +
@@ -1028,6 +1063,13 @@
       var v = POR_ID[decodeURIComponent(caminho.slice(6))];
       raiz.innerHTML = htmlVaga(v);
       document.title = (v ? v.titulo + ' · ' : '') + 'Portal de Vagas em Dados';
+      if (v && !descricoes.prontas()) {
+        descricoes.carregar(function (ok) {
+          var alvo = raiz.querySelector('[data-descricao="' + CSS.escape(v.id) + '"]');
+          if (!alvo) return; // a pessoa já saiu desta vaga
+          alvo.textContent = ok ? descricoes.de(v.id) : 'Não foi possível carregar a descrição agora. Veja a vaga completa na Gupy.';
+        });
+      }
     } else if (caminho === '/perfil' || caminho === '/perfil/resultado') {
       nome = 'perfil';
       if ('area' in p) perfil.area = AREAS[p.area] ? p.area : '';
@@ -1332,6 +1374,12 @@
   window.addEventListener('hashchange', rota);
   atualizarContador();
   rota();
+  (window.requestIdleCallback || function (f) { setTimeout(f, 1200); })(function () {
+    descricoes.carregar(function (ok) {
+      // Busca em andamento passa a considerar o texto completo das vagas.
+      if (ok && raiz.querySelector('[data-resultados]') && norm(busca.q).trim()) renderResultados();
+    });
+  });
   if (Conta.ativa) {
     Conta.iniciar().then(function (u) { if (u) aposLogin(); else atualizarContador(); })
       .catch(function (err) { console.error(err); aviso('Não foi possível verificar sua sessão.'); });
