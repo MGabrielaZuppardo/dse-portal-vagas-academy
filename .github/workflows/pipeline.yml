@@ -4,6 +4,8 @@
 #   Settings > Pages > Source: GitHub Actions
 #   Settings > Secrets and variables > Actions > Variables:
 #     SUPABASE_URL, SUPABASE_ANON_KEY (chave publishable: é pública por design)
+#     PRIVACIDADE_RESPONSAVEL, PRIVACIDADE_CONTATO, PRIVACIDADE_REGIAO_DADOS
+#     (exibidas na política de privacidade; vazias aparecem como "[a definir]")
 #
 # Se a coleta vier suspeita (poucas vagas) ou os testes falharem, nada é publicado:
 # o site anterior continua no ar e o GitHub avisa por e-mail.
@@ -59,6 +61,9 @@ jobs:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           AUTH_PROVEDORES: ${{ vars.AUTH_PROVEDORES }}
+          PRIVACIDADE_RESPONSAVEL: ${{ vars.PRIVACIDADE_RESPONSAVEL }}
+          PRIVACIDADE_CONTATO: ${{ vars.PRIVACIDADE_CONTATO }}
+          PRIVACIDADE_REGIAO_DADOS: ${{ vars.PRIVACIDADE_REGIAO_DADOS }}
         run: python -m app.build_site
 
       - uses: actions/upload-pages-artifact@v3
