@@ -38,8 +38,14 @@ def escrever_config(destino: Path) -> bool:
     chave = os.environ.get("SUPABASE_ANON_KEY", "").strip()
     provedores = [p.strip() for p in os.environ.get("AUTH_PROVEDORES", "").split(",") if p.strip()]
     config = {"supabaseUrl": url, "supabaseAnonKey": chave, "provedores": provedores} if url and chave else {}
-    destino.write_text("window.PORTAL_CONFIG = " + json.dumps(config) + ";\n", encoding="utf-8")
-    return bool(config)
+    # Dados públicos da política de privacidade; vazios aparecem como "[a definir]" na página.
+    config["privacidade"] = {
+        "responsavel": os.environ.get("PRIVACIDADE_RESPONSAVEL", "").strip(),
+        "contato": os.environ.get("PRIVACIDADE_CONTATO", "").strip(),
+        "regiao": os.environ.get("PRIVACIDADE_REGIAO_DADOS", "").strip(),
+    }
+    destino.write_text("window.PORTAL_CONFIG = " + json.dumps(config, ensure_ascii=False) + ";\n", encoding="utf-8")
+    return bool(url and chave)
 
 
 def construir(saida: Path = SAIDA) -> dict:

@@ -331,6 +331,18 @@ legend { padding: 0; margin-bottom: 12px; }
 .cobertura-barra { width: 100%; max-width: 360px; height: 10px; }
 .chip-pct { font-size: 11px; opacity: .75; margin-left: 2px; }
 
+/* ---------------- Páginas de texto (política de privacidade) ---------------- */
+.pagina-texto { width: 100%; max-width: 760px; margin: 0 auto; padding: 40px var(--gutter) 56px; display: flex; flex-direction: column; gap: 14px; }
+.pagina-texto h1 { font-size: clamp(28px, 3.4vw, 40px); }
+.texto-secao { display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid var(--borda-leve); }
+.texto-secao h2 { font-size: 20px; }
+.texto-secao h3 { font-family: inherit; font-size: 15px; font-weight: 600; margin-top: 6px; }
+.texto-secao p, .texto-secao li { font-size: 16px; line-height: 1.65; color: var(--tinta-2); }
+.texto-secao ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.a-definir { background: #FFF4E0; color: #7A4B00; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+.rodape-link { color: var(--azul-claro); text-decoration: underline; }
+.rodape-link:hover { color: #fff; }
+
 /* ---------------- Onboarding (primeiro login) ---------------- */
 .pagina-onboarding { width: 100%; max-width: 760px; margin: 0 auto; padding: 40px var(--gutter); display: flex; flex-direction: column; gap: 16px; }
 .onb-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -501,7 +513,8 @@ legend { padding: 0; margin-bottom: 12px; }
   .botao-busca { width: 100%; }
 
   .pagina-busca, .pagina-perfil, .pagina-candidato, .pagina-perfil-form, .pagina-perfil-resultado { padding-top: 20px; padding-bottom: 32px; gap: 20px; }
-  .pagina-onboarding { padding-top: 20px; padding-bottom: 32px; }
+  .pagina-onboarding, .pagina-texto { padding-top: 20px; padding-bottom: 32px; }
+  .texto-secao p, .texto-secao li { font-size: 15px; }
   .onb-passo { padding: 18px; }
   .opcoes-cartao { grid-template-columns: minmax(0, 1fr); }
   .onb-acoes { flex-direction: column-reverse; align-items: stretch; }

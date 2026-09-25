@@ -524,7 +524,8 @@
           '<label class="rotulo" for="rep-detalhe">Detalhes (opcional)</label>' +
           '<textarea id="rep-detalhe" class="campo campo-texto" maxlength="500" rows="3" placeholder="Ex.: a vaga pede Spark, não Snowflake"></textarea>' +
           '<button type="submit" class="botao-cheio">Enviar relato</button>' +
-          '<p class="nota">Não precisa entrar na conta.' + (logado ? ' Como você está conectada(o), o relato fica ligado à sua conta.' : ' O relato é anônimo.') + '</p>' +
+          '<p class="nota">Não precisa entrar na conta.' + (logado ? ' Como você está conectada(o), o relato fica ligado à sua conta.' : ' O relato é anônimo.') +
+            ' <a href="#/privacidade">Privacidade</a></p>' +
         '</form>' +
       '</details>' +
       '<div class="nota" role="status" data-reportar-status></div>' +
@@ -723,6 +724,7 @@
           '<section class="painel">' +
             '<h2 class="painel-titulo">Conta</h2>' +
             '<span class="nota">Conectada como <strong>' + esc(u.email || '') + '</strong></span>' +
+            '<a class="link-simples" href="#/privacidade">Como tratamos seus dados</a>' +
             '<button type="button" class="botao-secundario" data-acao="sair">Sair</button>' +
             '<details class="zona-perigo"><summary>Excluir minha conta</summary>' +
               '<p class="nota">Apaga sua conta, seu perfil e todas as vagas salvas. Não dá para desfazer.</p>' +
@@ -762,7 +764,8 @@
       '<div class="status-entrar" role="status" data-status-entrar></div>' +
       (provedores ? '<div class="divisor-texto"><span>ou</span></div><div class="pilha">' + provedores + '</div>' : '') +
       '<p class="nota privacidade">Guardamos seu e-mail, as vagas que você salvar e o que você preencher no perfil, ' +
-        'só para mostrar o seu perfil. Nada é compartilhado. Você pode excluir tudo a qualquer momento em Meu perfil.</p>' +
+        'só para mostrar o seu perfil. Não vendemos dados nem usamos para publicidade. Você pode excluir tudo a qualquer momento ' +
+        'em Meu perfil. <a href="#/privacidade">Política de privacidade</a></p>' +
     '</div></div>';
   }
 
@@ -1163,6 +1166,97 @@
     if (location.hash === hash) rota(); else location.hash = hash;
   }
 
+  // ---------------------------------------------------------------- política de privacidade
+
+  var PRIVACIDADE_ATUALIZADA_EM = '25/09/2026';
+
+  function htmlPrivacidade() {
+    var cfg = (window.PORTAL_CONFIG || {}).privacidade || {};
+    var campo = function (valor, rotulo) {
+      return valor ? esc(valor) : '<mark class="a-definir">[a definir: ' + rotulo + ']</mark>';
+    };
+    var contato = cfg.contato
+      ? '<a href="mailto:' + esc(cfg.contato) + '">' + esc(cfg.contato) + '</a>'
+      : campo('', 'e-mail de contato');
+    var secao = function (titulo, corpo) { return '<section class="texto-secao"><h2>' + titulo + '</h2>' + corpo + '</section>'; };
+
+    return '<article class="pagina-texto">' +
+      '<span class="sobretitulo">PRIVACIDADE</span>' +
+      '<h1>Política de privacidade</h1>' +
+      '<p class="nota">Última atualização: ' + PRIVACIDADE_ATUALIZADA_EM + '</p>' +
+      '<p class="texto-apoio">Esta política explica quais dados o Portal de Vagas em Dados trata, para quê e como você controla ' +
+        'esses dados, conforme a Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018).</p>' +
+
+      secao('1. Quem é responsável pelos dados',
+        '<p>O portal é um projeto da comunidade DSE Academy. Responsável pelo tratamento dos dados (controlador): ' +
+        campo(cfg.responsavel, 'nome do responsável') + '. Contato para assuntos de privacidade: ' + contato + '.</p>') +
+
+      secao('2. Quais dados tratamos',
+        '<h3>Se você só navega</h3>' +
+        '<p>Não pedimos cadastro nem usamos cookies de rastreamento, publicidade ou ferramentas de análise de audiência. ' +
+        'O próprio navegador guarda, no armazenamento local, apenas o necessário para o portal funcionar: as vagas que você já ' +
+        'reportou, as vagas salvas quando o login não está disponível e, se você entrar, a sua sessão.</p>' +
+        '<h3>Se você cria uma conta</h3><ul>' +
+          '<li><strong>E-mail</strong>, para enviar o link de acesso e identificar a sua conta;</li>' +
+          '<li><strong>Dados que você informa no perfil</strong>: nome (opcional), área de interesse, nível que busca e skills;</li>' +
+          '<li><strong>Vagas que você salva</strong>, com título, empresa e link da vaga.</li></ul>' +
+        '<h3>Se você reporta um erro em uma vaga</h3>' +
+        '<p>O tipo de erro, as stacks marcadas, o texto opcional que você escrever e um resumo da vaga. ' +
+        'Se você estiver conectada(o), o relato fica ligado à sua conta; caso contrário, é anônimo. ' +
+        'Não escreva dados pessoais no campo de detalhes.</p>' +
+        '<h3>Registros técnicos</h3>' +
+        '<p>Como em qualquer site, os serviços que usamos registram dados técnicos das conexões (como endereço IP, data e hora) ' +
+        'para funcionar e manter a segurança. Veja quais são no item 5.</p>') +
+
+      secao('3. Para que usamos',
+        '<ul><li>Permitir que você entre na sua conta e mantenha perfil e vagas salvas em qualquer aparelho;</li>' +
+        '<li>Calcular a sua aderência às vagas e mostrar o que o mercado pede para o seu perfil;</li>' +
+        '<li>Corrigir e melhorar a identificação de stacks, áreas e senioridade a partir dos relatos de erro.</li></ul>' +
+        '<p><strong>Não vendemos dados, não usamos seus dados para publicidade e não enviamos e-mails de marketing.</strong> ' +
+        'Os únicos e-mails enviados são os links de acesso que você pede.</p>') +
+
+      secao('4. Base legal',
+        '<p>Tratamos os dados da conta com base no seu consentimento, dado ao criar a conta, e para executar o serviço que ' +
+        'você solicita (LGPD, art. 7º, incisos I e V). Você pode revogar o consentimento a qualquer momento excluindo a conta.</p>') +
+
+      secao('5. Com quem os dados são compartilhados',
+        '<p>Usamos serviços de terceiros que tratam dados em nosso nome (operadores), apenas para o portal funcionar:</p><ul>' +
+          '<li><strong>Supabase</strong>: autenticação e armazenamento da conta, do perfil, das vagas salvas e dos relatos;</li>' +
+          '<li><strong>GitHub Pages</strong>: hospedagem do site;</li>' +
+          '<li><strong>Google Fonts</strong> e <strong>jsDelivr</strong>: entrega das fontes e de uma biblioteca usada pelo site, ' +
+          'que recebem dados técnicos da conexão ao carregar a página.</li></ul>' +
+        '<p>Esses serviços podem processar dados fora do Brasil. Os dados da conta ficam armazenados na região ' +
+        campo(cfg.regiao, 'região do Supabase') + '. Não compartilhamos seus dados com empresas anunciantes de vagas.</p>') +
+
+      secao('6. Por quanto tempo guardamos',
+        '<ul><li><strong>Conta, perfil e vagas salvas</strong>: até você excluir a conta;</li>' +
+        '<li><strong>Relatos de erro</strong>: mantidos para melhorar o portal. Ao excluir a conta, os relatos deixam de ter ' +
+        'vínculo com você;</li>' +
+        '<li><strong>Registros técnicos</strong>: pelos prazos de cada serviço listado no item 5.</li></ul>') +
+
+      secao('7. Seus direitos e como exercê-los',
+        '<p>A LGPD (art. 18) garante que você pode confirmar se tratamos seus dados, acessá-los, corrigi-los, pedir a exclusão ' +
+        'ou a portabilidade, saber com quem são compartilhados e revogar o consentimento.</p><ul>' +
+          '<li><strong>Ver e corrigir</strong>: em <a href="#/candidato">Meu perfil</a>, a qualquer momento;</li>' +
+          '<li><strong>Excluir</strong>: em Meu perfil → <em>Excluir minha conta</em>. A exclusão da conta, do perfil e das vagas ' +
+          'salvas é imediata e não pode ser desfeita;</li>' +
+          '<li><strong>Outros pedidos</strong>: pelo e-mail ' + contato + '.</li></ul>' +
+        '<p>Você também pode apresentar reclamação à Autoridade Nacional de Proteção de Dados (ANPD).</p>') +
+
+      secao('8. Segurança',
+        '<p>O acesso é feito por link enviado ao seu e-mail, sem senha armazenada no portal, e a conexão é criptografada (HTTPS). ' +
+        'No banco de dados, regras de acesso por linha garantem que cada pessoa só leia e altere os próprios dados; os relatos ' +
+        'de erro não podem ser lidos pelo site.</p>') +
+
+      secao('9. Sobre as vagas exibidas',
+        '<p>As vagas são coletadas de páginas públicas de carreira na Gupy e pertencem às empresas que as publicam. ' +
+        'A candidatura é feita no site da empresa: o portal não recebe nem guarda currículos ou dados de candidatura.</p>') +
+
+      secao('10. Alterações desta política',
+        '<p>Se esta política mudar, a nova versão será publicada nesta página com a data de atualização.</p>') +
+    '</article>';
+  }
+
   // ---------------------------------------------------------------- rotas
 
   function parametros(q) {
@@ -1225,6 +1319,10 @@
       if (carregandoConta) { var ls = raiz.querySelector('[data-salvas]'); if (ls) ls.innerHTML = '<p class="nota">Carregando suas vagas…</p>'; }
       else renderSalvas();
       document.title = 'Meu perfil · Portal de Vagas em Dados';
+    } else if (caminho === '/privacidade') {
+      nome = 'privacidade';
+      raiz.innerHTML = htmlPrivacidade();
+      document.title = 'Política de privacidade · Portal de Vagas em Dados';
     } else if (caminho === '/boas-vindas') {
       if (!Conta.usuario || !Conta.usuario()) { location.replace('#/entrar'); return; }
       nome = 'candidato';
