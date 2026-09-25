@@ -38,6 +38,7 @@ Um projeto da comunidade DSE Academy, feito pela comunidade de dados para a comu
 | **Perfil de competências** (`#/perfil` → `#/perfil/resultado`) | As skills mais pedidas por área e nível, com o percentual de vagas que citam cada uma, e o que priorizar a partir do que a pessoa já sabe. O resultado tem URL própria e pode ser compartilhado. |
 | **Meu perfil** (`#/candidato`) | Vagas salvas e **Minhas skills**: etiquetas editáveis com autocompletar, cobertura das 10 skills mais pedidas na área de interesse e sugestões do que aprender. |
 | **Entrar** (`#/entrar`) | Login por link no e-mail, sem senha. |
+| **Política de privacidade** (`#/privacidade`) | Quais dados o portal trata, para quê, com quem, por quanto tempo e como exercer os direitos da LGPD. Link no rodapé, no login e em Meu perfil. |
 | **Boas-vindas** (`#/boas-vindas`) | No primeiro login, 3 passos (área, nível e skills, com sugestões da área) que já deixam a busca ordenada por aderência. Pode ser pulado e refeito em Meu perfil. |
 | **Algo errado nesta vaga?** (na página da vaga) | Relato de stack errada, vaga fora da área, senioridade errada ou vaga encerrada, sem precisar de login. |
 
@@ -145,6 +146,9 @@ Copie `.env.example` para `.env`. Todas as variáveis são opcionais: sem elas, 
 | `GEMINI_API_KEY` | Chave da API do Gemini, só para o enriquecimento com LLM |
 | `GEMINI_MODEL` / `GEMINI_RPM` | Modelo e limite de requisições por minuto do Gemini |
 | `OLLAMA_MODEL` / `OLLAMA_URL` | Modelo e endereço do Ollama local |
+| `PRIVACIDADE_RESPONSAVEL` | Quem responde pelos dados (controlador), exibido na política de privacidade |
+| `PRIVACIDADE_CONTATO` | E-mail para pedidos de privacidade (LGPD) |
+| `PRIVACIDADE_REGIAO_DADOS` | Região do projeto Supabase (ex.: `São Paulo (sa-east-1)`) |
 
 O `.env` nunca é versionado.
 
@@ -345,6 +349,7 @@ pessoais de recrutadores ou candidatos. Cada vaga leva para o anúncio original.
 
 - [ ] Revisar os termos de uso da Gupy (ver acima)
 - [ ] Ativar o GitHub Pages e configurar o Supabase para a URL de produção
+- [ ] Preencher `PRIVACIDADE_RESPONSAVEL`, `PRIVACIDADE_CONTATO` e `PRIVACIDADE_REGIAO_DADOS` e revisar a política com apoio jurídico
 - [ ] SMTP próprio para os e-mails de login
 - [ ] Avaliação manual de uma amostra (acurácia de senioridade, precisão e revocação das skills)
 - [ ] Conectores Greenhouse e Lever
