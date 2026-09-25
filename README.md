@@ -38,6 +38,7 @@ Um projeto da comunidade DSE Academy, feito pela comunidade de dados para a comu
 | **Perfil de competências** (`#/perfil` → `#/perfil/resultado`) | As skills mais pedidas por área e nível, com o percentual de vagas que citam cada uma, e o que priorizar a partir do que a pessoa já sabe. O resultado tem URL própria e pode ser compartilhado. |
 | **Meu perfil** (`#/candidato`) | Vagas salvas e **Minhas skills**: etiquetas editáveis com autocompletar, cobertura das 10 skills mais pedidas na área de interesse e sugestões do que aprender. |
 | **Entrar** (`#/entrar`) | Login por link no e-mail, sem senha. |
+| **Algo errado nesta vaga?** (na página da vaga) | Relato de stack errada, vaga fora da área, senioridade errada ou vaga encerrada, sem precisar de login. |
 
 **Por trás do portal**
 
@@ -156,7 +157,9 @@ O `.env` nunca é versionado.
 ### Configurando o Supabase
 
 1. Crie um projeto em [supabase.com](https://supabase.com) (plano gratuito). Para público brasileiro, prefira a região São Paulo.
-2. Em **SQL Editor**, rode [`supabase/migrations/001_perfil_candidato.sql`](supabase/migrations/001_perfil_candidato.sql).
+2. Em **SQL Editor**, rode as migrações em ordem:
+   [`001_perfil_candidato.sql`](supabase/migrations/001_perfil_candidato.sql) e
+   [`002_reportes_vaga.sql`](supabase/migrations/002_reportes_vaga.sql).
 3. Em **Authentication → URL Configuration**:
    - **Site URL:** `http://localhost:8765` (em produção, a URL do GitHub Pages)
    - **Redirect URLs:** `http://localhost:8765/**` e a URL do GitHub Pages com `/**`
@@ -168,7 +171,9 @@ O `.env` nunca é versionado.
 - **Row Level Security:** cada pessoa só lê e altera as próprias linhas em `perfis` e `vagas_salvas`,
   mesmo com a chave pública no site. Inserções anônimas são recusadas.
 - **Limite:** até 500 vagas salvas por pessoa.
-- **LGPD:** são guardados só o e-mail, o que a pessoa preenche no perfil e as vagas que ela salva.
+- **Relatos de erro:** qualquer pessoa pode enviar, mas a tabela `reportes_vaga` não tem política de leitura:
+  ninguém lê os relatos pelo site. Relatos de quem está logado ficam ligados à conta; os demais são anônimos.
+- **LGPD:** são guardados só o e-mail, o que a pessoa preenche no perfil, as vagas que ela salva e os relatos que envia.
   Em *Meu perfil → Excluir minha conta*, a função `excluir_minha_conta()` apaga conta, perfil e vagas salvas.
 
 ---
@@ -240,6 +245,21 @@ Fica a publicação aberta mais recente; banco de talentos só representa o grup
 
 Percentual de vagas abertas (da área e do nível escolhidos) que citam cada skill. Amostras com menos de 20 vagas
 recebem o aviso "amostra pequena".
+
+### Revisando os relatos de erro
+
+Os relatos chegam na tabela `reportes_vaga` e são lidos pelo painel do Supabase (*Table Editor* ou *SQL Editor*).
+O arquivo da migração traz consultas prontas; as mais úteis:
+
+```sql
+-- stacks mais apontadas como erradas: candidatas a ajuste na taxonomy.yaml
+select s as stack, count(*) from reportes_vaga, unnest(stacks) s
+where tipo = 'stack_errada' group by s order by 2 desc;
+
+-- títulos apontados como "não é vaga de dados": candidatos à camada 1 da classificação de área
+select titulo, count(*) from reportes_vaga
+where tipo = 'nao_e_vaga_de_dados' group by titulo order by 2 desc;
+```
 
 ### Limitações conhecidas
 
