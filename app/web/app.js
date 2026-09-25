@@ -718,6 +718,7 @@
             '<div class="grupo"><label class="rotulo" for="p-sen">Nível que busco</label><select id="p-sen" class="seletor">' + niveis + '</select></div>' +
             '<button type="submit" class="botao-cheio">Salvar perfil</button>' +
             '<a class="link-simples" href="' + linkResultadoPerfil({ area: p.area, sen: p.senioridade, sei: (p.habilidades || []).join(', ') }) + '">Ver o que o mercado pede para este perfil →</a>' +
+            '<a class="link-simples" href="#/boas-vindas" data-refazer-onboarding>Refazer a configuração inicial</a>' +
           '</form>' +
           '<section class="painel">' +
             '<h2 class="painel-titulo">Conta</h2>' +
@@ -1035,6 +1036,133 @@
     alterarSkills(nova.slice(0, 100));
   }
 
+  // ---------------------------------------------------------------- onboarding (primeiro login)
+
+  var onb = null; // { passo, area, sen, skills, destino } enquanto a pessoa está no fluxo
+  var TOTAL_PASSOS = 3;
+
+  function iniciarOnboarding(destino) {
+    var p = perfilConta || {};
+    onb = {
+      passo: 1,
+      area: AREAS[p.area] ? p.area : '',
+      sen: NOME_NIVEL[p.senioridade] ? p.senioridade : '',
+      skills: minhasSkills(),
+      destino: destino || null
+    };
+  }
+
+  function htmlOpcoesCartao(nome, opcoes, atual) {
+    return '<div class="opcoes-cartao">' + opcoes.map(function (o) {
+      return '<label class="cartao-opcao"><input type="radio" name="' + nome + '" value="' + esc(o[0]) + '"' +
+        (o[0] === atual ? ' checked' : '') + '><span>' + esc(o[1]) + '</span></label>';
+    }).join('') + '</div>';
+  }
+
+  function sugestoesOnboarding() {
+    var pool = VISIVEIS.filter(function (v) { return v._stacks.length && contaNoMercado(v, onb.area); });
+    var total = pool.length || 1;
+    return contar(pool, function (v) { return v._principais; }).slice(0, 12).map(function (e) {
+      return { nome: nomeSkill(e[0]), pct: Math.round(100 * e[1] / total) };
+    });
+  }
+
+  function htmlOnboarding() {
+    var passo = onb.passo, corpo;
+    if (passo === 1) {
+      corpo = '<h1 tabindex="-1">Qual área você busca?</h1>' +
+        '<p class="texto-apoio">Usamos isso para comparar você com as vagas certas e mostrar o que o mercado pede.</p>' +
+        '<fieldset><legend class="sr">Área de interesse</legend>' +
+        htmlOpcoesCartao('onb-area', Object.keys(AREAS).map(function (a) { return [a, AREAS[a]]; }).concat([['', 'Ainda não sei']]), onb.area) +
+        '</fieldset>';
+    } else if (passo === 2) {
+      corpo = '<h1 tabindex="-1">Em que nível?</h1>' +
+        '<p class="texto-apoio">O nível das vagas que você quer encontrar agora.</p>' +
+        '<fieldset><legend class="sr">Nível que você busca</legend>' +
+        htmlOpcoesCartao('onb-sen', NIVEIS.concat([['', 'Ainda não sei']]), onb.sen) +
+        '</fieldset>';
+    } else {
+      var escolhidas = {};
+      onb.skills.forEach(function (s) { escolhidas[chaveSkill(s)] = true; });
+      var sugestoes = sugestoesOnboarding();
+      var nomes = Object.keys(D.skills).map(function (id) { return D.skills[id]; }).sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); });
+      corpo = '<h1 tabindex="-1">O que você já sabe?</h1>' +
+        '<p class="texto-apoio">Marque as tecnologias que você usa. É com elas que calculamos sua aderência às vagas.</p>' +
+        (sugestoes.length
+          ? '<p class="rotulo">Mais pedidas' + (onb.area ? ' em ' + esc(AREAS[onb.area]) : '') + '</p>' +
+            '<div class="opcoes">' + sugestoes.map(function (s) {
+              var on = !!escolhidas[chaveSkill(s.nome)];
+              return '<button type="button" class="chip-botao" data-onb-skill="' + esc(s.nome) + '" aria-pressed="' + on + '">' +
+                (on ? '✓ ' : '+ ') + esc(s.nome) + ' <span class="chip-pct">' + s.pct + '%</span></button>';
+            }).join('') + '</div>'
+          : '') +
+        '<form class="skills-add" data-acao="onb-add-skill">' +
+          '<label class="sr" for="onb-skill">Adicionar outra skill</label>' +
+          '<input id="onb-skill" class="campo" list="onb-lista-skills" autocomplete="off" placeholder="Outra skill (ex.: Airflow, dbt)">' +
+          '<button type="submit" class="botao-secundario">Adicionar</button>' +
+        '</form>' +
+        '<datalist id="onb-lista-skills">' + nomes.map(function (n) { return '<option value="' + esc(n) + '"></option>'; }).join('') + '</datalist>' +
+        (onb.skills.length
+          ? '<p class="rotulo">Suas skills (' + onb.skills.length + ')</p><div class="chips-editaveis">' + onb.skills.map(function (s, i) {
+              return '<span class="chip-skill">' + esc(s) + '<button type="button" data-onb-remover="' + i + '" aria-label="Remover ' + esc(s) + '">×</button></span>';
+            }).join('') + '</div>'
+          : '<p class="nota">Nenhuma skill ainda. Você pode continuar assim e preencher depois em Meu perfil.</p>');
+    }
+    return '<div class="pagina-onboarding">' +
+      '<div class="onb-topo"><span class="sobretitulo">BOAS-VINDAS AO PORTAL</span><span class="nota">Passo ' + passo + ' de ' + TOTAL_PASSOS + '</span></div>' +
+      '<div class="onb-progresso" role="progressbar" aria-label="Progresso da configuração" aria-valuemin="1" aria-valuemax="' + TOTAL_PASSOS + '" aria-valuenow="' + passo + '">' +
+        '<span style="width:' + Math.round(100 * passo / TOTAL_PASSOS) + '%"></span></div>' +
+      '<section class="painel onb-passo">' + corpo + '</section>' +
+      '<div class="onb-acoes">' +
+        '<button type="button" class="link-botao" data-onb="pular">Pular por agora</button>' +
+        '<div class="onb-navegacao">' +
+          (passo > 1 ? '<button type="button" class="botao-secundario" data-onb="voltar">Voltar</button>' : '') +
+          '<button type="button" class="botao-cheio" data-onb="' + (passo < TOTAL_PASSOS ? 'continuar' : 'concluir') + '">' +
+            (passo < TOTAL_PASSOS ? 'Continuar' : 'Concluir e ver vagas') + '</button>' +
+        '</div>' +
+      '</div>' +
+      '<p class="nota onb-rodape">Você pode mudar tudo isso depois em Meu perfil.</p>' +
+    '</div>';
+  }
+
+  function renderOnboarding() {
+    raiz.innerHTML = htmlOnboarding();
+    var titulo = raiz.querySelector('.onb-passo h1');
+    if (titulo) titulo.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+  }
+
+  function concluirOnboarding(pulou) {
+    var botoes = raiz.querySelectorAll('[data-onb]');
+    botoes.forEach(function (b) { b.disabled = true; });
+    var atual = perfilConta || {};
+    var dados = pulou
+      ? { nome: atual.nome || null, habilidades: atual.habilidades || [], area: atual.area || null, senioridade: atual.senioridade || null }
+      : { nome: atual.nome || null, habilidades: onb.skills, area: onb.area || null, senioridade: onb.sen || null };
+    Conta.gravarPerfil(dados).then(function () {
+      perfilConta = dados;
+      perfil.sei = (dados.habilidades || []).join(', ');
+      perfil.area = dados.area || '';
+      perfil.sen = dados.senioridade || null;
+      perfil._preenchido = true;
+      var destino = onb.destino || '#/';
+      onb = null;
+      if (!pulou && dados.habilidades.length) {
+        busca.ordem = 'aderentes';
+        aviso('Perfil pronto! As vagas estão ordenadas pela sua aderência.');
+      }
+      irPara(destino);
+    }).catch(function (err) {
+      console.error(err);
+      botoes.forEach(function (b) { b.disabled = false; });
+      aviso('Não foi possível salvar agora. Tente de novo.');
+    });
+  }
+
+  function irPara(hash) {
+    if (location.hash === hash) rota(); else location.hash = hash;
+  }
+
   // ---------------------------------------------------------------- rotas
 
   function parametros(q) {
@@ -1097,6 +1225,12 @@
       if (carregandoConta) { var ls = raiz.querySelector('[data-salvas]'); if (ls) ls.innerHTML = '<p class="nota">Carregando suas vagas…</p>'; }
       else renderSalvas();
       document.title = 'Meu perfil · Portal de Vagas em Dados';
+    } else if (caminho === '/boas-vindas') {
+      if (!Conta.usuario || !Conta.usuario()) { location.replace('#/entrar'); return; }
+      nome = 'candidato';
+      if (!onb) iniciarOnboarding(null);
+      renderOnboarding();
+      document.title = 'Boas-vindas · Portal de Vagas em Dados';
     } else if (caminho === '/entrar') {
       if (Conta.usuario()) { location.replace('#/candidato'); return; }
       nome = 'candidato';
@@ -1115,7 +1249,8 @@
       if (atual) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
     fecharMenu();
-    if (!primeira) { window.scrollTo(0, 0); raiz.focus({ preventScroll: true }); }
+    // No onboarding o foco já vai para o título do passo (renderOnboarding).
+    if (!primeira && caminho !== '/boas-vindas') { window.scrollTo(0, 0); raiz.focus({ preventScroll: true }); }
     primeira = false;
   }
 
@@ -1146,6 +1281,8 @@
       atualizarBusca();
     }
     else if (t.hasAttribute('data-negocio')) { busca.negocio = t.checked; atualizarBusca(); }
+    else if (t.name === 'onb-area' && onb) { onb.area = t.value; }
+    else if (t.name === 'onb-sen' && onb) { onb.sen = t.value; }
     else if (t.name === 'rep-tipo') {
       var campoStacks = raiz.querySelector('[data-rep-stacks]');
       if (campoStacks) campoStacks.hidden = t.value !== 'stack_errada';
@@ -1167,6 +1304,13 @@
       enviarLinkDeAcesso(raiz.querySelector('#email').value.trim(), e.target.querySelector('button[type=submit]'));
     } else if (acao === 'salvar-perfil') {
       salvarPerfilDaPagina(e.target.querySelector('button[type=submit]'));
+    } else if (acao === 'onb-add-skill') {
+      var campoOnb = raiz.querySelector('#onb-skill');
+      campoOnb.value.split(/[,;\n]/).map(skillCanonica).filter(Boolean).forEach(function (s) {
+        if (!onb.skills.some(function (x) { return chaveSkill(x) === chaveSkill(s); })) onb.skills.push(s);
+      });
+      renderOnboarding();
+      var novoCampo = raiz.querySelector('#onb-skill'); if (novoCampo) novoCampo.focus();
     } else if (acao === 'reportar') {
       enviarRelato(e.target);
     } else if (acao === 'add-skill') {
@@ -1222,6 +1366,23 @@
         marcar(salvas.tem(vagaId)); // desfeito
         aviso('Não foi possível atualizar suas vagas salvas. Tente de novo.');
       });
+    }
+    else if (b.dataset.onb && onb) {
+      var acaoOnb = b.dataset.onb;
+      if (acaoOnb === 'continuar') { onb.passo = Math.min(TOTAL_PASSOS, onb.passo + 1); renderOnboarding(); }
+      else if (acaoOnb === 'voltar') { onb.passo = Math.max(1, onb.passo - 1); renderOnboarding(); }
+      else if (acaoOnb === 'concluir') concluirOnboarding(false);
+      else if (acaoOnb === 'pular') concluirOnboarding(true);
+    }
+    else if (b.dataset.onbSkill && onb) {
+      var nomeS = b.dataset.onbSkill, iS = onb.skills.findIndex(function (x) { return chaveSkill(x) === chaveSkill(nomeS); });
+      if (iS >= 0) onb.skills.splice(iS, 1); else onb.skills.push(nomeS);
+      renderOnboarding();
+      var mesmo = raiz.querySelector('[data-onb-skill="' + CSS.escape(nomeS) + '"]'); if (mesmo) mesmo.focus();
+    }
+    else if ('onbRemover' in b.dataset && onb) {
+      onb.skills.splice(Number(b.dataset.onbRemover), 1);
+      renderOnboarding();
     }
     else if ('removerSkill' in b.dataset) {
       var atuais = minhasSkills();
@@ -1341,11 +1502,20 @@
     carregandoConta = true;
     try {
       var r = await Promise.all([salvas.carregar(), Conta.carregarPerfil()]);
+      var primeiroAcesso = r[1] === null;
       perfilConta = r[1] || {};
       var pendente = intencao.retirar();
       if (pendente && pendente.salvar && !salvas.tem(pendente.salvar)) {
         await salvas.alternar(pendente.salvar);
         aviso('Vaga salva no seu perfil.');
+      }
+      if (primeiroAcesso) {
+        // Depois do onboarding, volta para a vaga que a pessoa tentou salvar (se foi o caso).
+        iniciarOnboarding(pendente && pendente.salvar ? pendente.voltar : null);
+        carregandoConta = false;
+        atualizarContador();
+        irPara('#/boas-vindas');
+        return;
       }
       if (pendente && pendente.voltar && location.hash !== pendente.voltar) {
         carregandoConta = false;

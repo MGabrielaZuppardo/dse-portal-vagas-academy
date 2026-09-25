@@ -331,6 +331,27 @@ legend { padding: 0; margin-bottom: 12px; }
 .cobertura-barra { width: 100%; max-width: 360px; height: 10px; }
 .chip-pct { font-size: 11px; opacity: .75; margin-left: 2px; }
 
+/* ---------------- Onboarding (primeiro login) ---------------- */
+.pagina-onboarding { width: 100%; max-width: 760px; margin: 0 auto; padding: 40px var(--gutter); display: flex; flex-direction: column; gap: 16px; }
+.onb-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.onb-progresso { height: 8px; border-radius: 999px; background: #E6ECF7; overflow: hidden; }
+.onb-progresso span { display: block; height: 100%; border-radius: 999px; background: var(--azul); transition: width .2s; }
+.onb-passo { gap: 16px; padding: 28px; }
+.onb-passo h1 { font-size: clamp(24px, 3vw, 32px); outline: none; }
+.opcoes-cartao { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.cartao-opcao {
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 10px 14px; border-radius: 12px;
+  border: 1px solid var(--borda-forte); background: #fff; cursor: pointer; font-size: 15px;
+}
+.cartao-opcao input { width: 18px; height: 18px; accent-color: var(--azul); margin: 0; flex-shrink: 0; }
+.cartao-opcao:hover { border-color: var(--azul); }
+.cartao-opcao:has(input:checked) { border-color: var(--azul); background: var(--chip-fundo); font-weight: 600; }
+.cartao-opcao:has(input:focus-visible) { outline: 3px solid var(--azul-ceu); outline-offset: 2px; }
+.onb-acoes { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.onb-navegacao { display: flex; gap: 10px; margin-left: auto; }
+.onb-navegacao .botao-cheio, .onb-navegacao .botao-secundario { min-height: 48px; padding: 0 24px; }
+.onb-rodape { text-align: center; }
+
 /* ---------------- Reportar erro ---------------- */
 .reportar details > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
 .reportar details > summary::-webkit-details-marker { display: none; }
@@ -480,6 +501,12 @@ legend { padding: 0; margin-bottom: 12px; }
   .botao-busca { width: 100%; }
 
   .pagina-busca, .pagina-perfil, .pagina-candidato, .pagina-perfil-form, .pagina-perfil-resultado { padding-top: 20px; padding-bottom: 32px; gap: 20px; }
+  .pagina-onboarding { padding-top: 20px; padding-bottom: 32px; }
+  .onb-passo { padding: 18px; }
+  .opcoes-cartao { grid-template-columns: minmax(0, 1fr); }
+  .onb-acoes { flex-direction: column-reverse; align-items: stretch; }
+  .onb-navegacao { margin-left: 0; }
+  .onb-navegacao > * { flex: 1; }
   .pagina-perfil-resultado { gap: 8px; }
   .resultados-topo { flex-direction: column; align-items: stretch; }
   .ordenar { justify-content: space-between; }

@@ -69,9 +69,10 @@ window.Conta = (function () {
     },
 
     // ---- perfil
+    // null quando a pessoa ainda não tem perfil gravado (primeiro acesso -> onboarding).
     carregarPerfil: async function () {
       exigirUsuario();
-      return checar(await sb.from('perfis').select('nome, habilidades, area, senioridade').eq('id', usuario.id).maybeSingle()) || {};
+      return checar(await sb.from('perfis').select('nome, habilidades, area, senioridade').eq('id', usuario.id).maybeSingle());
     },
     gravarPerfil: async function (p) {
       exigirUsuario();
