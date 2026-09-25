@@ -199,7 +199,8 @@ Se qualquer etapa falhar, o site anterior continua no ar e o GitHub avisa por e-
 **Configuração única no GitHub**
 
 - *Settings → Pages → Source:* **GitHub Actions**
-- *Settings → Secrets and variables → Actions → Variables:* `SUPABASE_URL`, `SUPABASE_ANON_KEY` e, se usar, `AUTH_PROVEDORES`
+- *Settings → Secrets and variables → Actions → Variables:* `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
+  `PRIVACIDADE_RESPONSAVEL`, `PRIVACIDADE_CONTATO`, `PRIVACIDADE_REGIAO_DADOS` e, se usar, `AUTH_PROVEDORES`
 
 ---
 
